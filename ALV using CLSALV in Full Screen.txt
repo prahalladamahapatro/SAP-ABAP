@@ -1,0 +1,244 @@
+*&---------------------------------------------------------------------*
+*& Report ZCLSALV_PRG1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zclsalv_prg2_u29.
+TABLES: vbap,vbak.
+
+INITIALIZATION.
+  SELECT-OPTIONS: so_vbeln FOR vbak-vbeln.
+
+* declaration of structures
+  TYPES: BEGIN OF ty_vbak,
+           vbeln TYPE vbeln_va,
+           erdat TYPE erdat,
+           ernam TYPE ernam,
+           erzet TYPE erzet,
+         END OF ty_vbak.
+
+  TYPES: BEGIN OF ty_vbap,
+           vbeln TYPE vbeln_va,
+           matnr TYPE matnr,
+           posnr TYPE posnr,
+           posar TYPE posar,
+         END OF ty_vbap.
+
+  TYPES: BEGIN OF ty_final,
+           vbeln TYPE vbeln_va,
+           erdat TYPE erdat,
+           ernam TYPE ernam,
+           erzet TYPE erzet,
+           vbtyp TYPE vbtypl,
+           matnr TYPE matnr,
+           posnr TYPE posnr,
+           posar TYPE posar,
+         END OF ty_final.
+
+  DATA: lt_vbak  TYPE TABLE OF ty_vbak,
+        wa_vbak  TYPE ty_vbak,
+
+        lt_vbap  TYPE TABLE OF ty_vbap,
+        wa_vbap  TYPE ty_vbap,
+
+        lt_final TYPE TABLE OF zstrfinal1_u29,
+        wa_final TYPE zstrfinal1_u29.
+
+*Object declaration part
+  DATA: lo_alv TYPE REF TO cl_salv_table, "--> object for salv_table class
+
+        lo_fun TYPE REF TO cl_salv_functions_list, "--> object for function_list class ( to activate the application toolbar buttons).
+
+        lo_cols TYPE REF TO CL_SALV_COLUMNS_TABLE, "--> object for columns_table class to change the column position (for get_columns method).
+        lo_col TYPE REF TO CL_SALV_COLUMN, "-->object for column class to change the column label (for get_column method).
+
+        lo_sorts TYPE REF TO CL_SALV_SORTS, "-->object for sorts class (for get_sort method)
+        lo_sort TYPE REF TO CL_SALV_SORT, "-->object for sort class for add_sort method to sort the column while displaying the output
+
+        lo_filters TYPE REF TO CL_SALV_FILTERS, "-->object for filters class (for get_filters method)
+        lo_filter TYPE REF TO CL_SALV_FILTER. "-->object for filter class for add_filter method to add filter to the data while displaying the output
+
+START-OF-SELECTION.
+
+  SELECT * FROM vbak INTO CORRESPONDING FIELDS OF TABLE lt_vbak
+    WHERE vbeln IN so_vbeln.
+
+  IF lt_vbak[] IS NOT INITIAL.
+    SELECT * FROM vbap INTO CORRESPONDING FIELDS OF TABLE lt_vbap
+      FOR ALL ENTRIES IN lt_vbak
+    WHERE vbeln = lt_vbak-vbeln.
+  ENDIF.
+
+  LOOP AT lt_vbak INTO wa_vbak.
+    LOOP AT lt_vbap INTO wa_vbap WHERE vbeln = wa_vbak-vbeln.
+      wa_final-vbeln = wa_vbak-vbeln.
+      wa_final-erdat = wa_vbak-erdat.
+      wa_final-ernam = wa_vbak-ernam.
+      wa_final-erzet = wa_vbak-erzet.
+      wa_final-posnr = wa_vbap-posnr.
+      wa_final-matnr = wa_vbap-matnr.
+      wa_final-posar = wa_vbap-posar.
+
+      APPEND wa_final TO lt_final.
+      CLEAR wa_final.
+    ENDLOOP.
+  ENDLOOP.
+
+***********************************************************************
+* to call the factory method
+  TRY.
+      CALL METHOD cl_salv_table=>factory
+*    EXPORTING
+*      list_display   = IF_SALV_C_BOOL_SAP=>FALSE
+*      r_container    =
+*      container_name =
+        IMPORTING
+          r_salv_table = lo_alv
+        CHANGING
+          t_table      = lt_final.
+    CATCH cx_salv_msg.
+  ENDTRY.
+
+**********************************************************************
+* to activate the generic function modules (like activating the buttons)
+  CALL METHOD lo_alv->get_functions
+    RECEIVING
+      value = lo_fun.
+
+  CALL METHOD lo_fun->set_all
+*    EXPORTING
+*      value  = IF_SALV_C_BOOL_SAP=>TRUE
+      .
+
+**********************************************************************
+*to change the column position
+CALL METHOD lo_alv->get_columns
+  RECEIVING
+    value  = lo_cols
+    .
+
+TRY.
+CALL METHOD lo_cols->set_column_position
+  EXPORTING
+    columnname = 'ERNAM'
+    position = 2
+*  receiving
+*    value      =
+    .
+  CATCH cx_salv_not_found.
+ENDTRY.
+
+TRY.
+CALL METHOD lo_cols->set_column_position
+  EXPORTING
+    columnname = 'ERDAT'
+    position = 3
+*  receiving
+*    value      =
+    .
+  CATCH cx_salv_not_found.
+ENDTRY.
+
+**********************************************************************
+* To change the field label of the column
+* NOTE: use the colums_table class object to call the column class, not the salv_table object
+TRY.
+CALL METHOD lo_cols->get_column
+  EXPORTING
+    columnname = 'ERNAM'
+  receiving
+    value      = lo_col
+    .
+  CATCH cx_salv_not_found.
+ENDTRY.
+
+    .
+CALL METHOD lo_col->set_long_text
+  EXPORTING
+    value  = 'The person who created'.
+    .
+
+**********************************************************************
+* to display the data in sorted order while displaying the output
+CALL METHOD lo_alv->get_sorts
+  RECEIVING
+    value  = lo_sorts
+    .
+TRY.
+CALL METHOD lo_sorts->add_sort
+  EXPORTING
+    columnname = 'VBELN'
+*    position   =
+    sequence   = IF_SALV_C_SORT=>SORT_DOWN
+*    subtotal   = IF_SALV_C_BOOL_SAP=>FALSE
+*    group      = IF_SALV_C_SORT=>GROUP_NONE
+*    obligatory = IF_SALV_C_BOOL_SAP=>FALSE
+  receiving
+    value      = lo_sort
+    .
+  CATCH cx_salv_not_found.
+  CATCH cx_salv_existing.
+  CATCH cx_salv_data_error.
+ENDTRY.
+
+*TRY.
+*CALL METHOD lo_sorts->add_sort
+*  EXPORTING
+*    columnname = 'ERDAT'
+**    position   =
+*    sequence   = IF_SALV_C_SORT=>sort_down
+**    subtotal   = IF_SALV_C_BOOL_SAP=>FALSE
+**    group      = IF_SALV_C_SORT=>GROUP_NONE
+**    obligatory = IF_SALV_C_BOOL_SAP=>FALSE
+*  receiving
+*    value      = lo_sort
+*    .
+*  CATCH cx_salv_not_found.
+*  CATCH cx_salv_existing.
+*  CATCH cx_salv_data_error.
+*ENDTRY.
+
+**********************************************************************
+*to filter the data like select-option
+
+CALL METHOD lo_alv->get_filters
+  RECEIVING
+    value  = lo_filters
+    .
+
+* To get the data from MATNR->'Y_FGX'
+TRY.
+CALL METHOD lo_filters->add_filter
+  EXPORTING
+    columnname = 'MATNR'
+    sign       = 'I'
+    option     = 'EQ'
+    low        = 'Y_FGX'
+*    high       =
+  receiving
+    value      = lo_filter
+    .
+  CATCH cx_salv_not_found.
+  CATCH cx_salv_data_error.
+  CATCH cx_salv_existing.
+ENDTRY.
+
+* to get the data from ERNAM->KING
+TRY.
+CALL METHOD lo_filters->add_filter
+  EXPORTING
+    columnname = 'ERNAM'
+    sign       = 'I'
+    option     = 'EQ'
+    low        = 'KING'
+*    high       =
+  receiving
+    value      = lo_filter
+    .
+  CATCH cx_salv_not_found.
+  CATCH cx_salv_data_error.
+  CATCH cx_salv_existing.
+ENDTRY.
+**********************************************************************
+* to call the display method
+  CALL METHOD lo_alv->display.

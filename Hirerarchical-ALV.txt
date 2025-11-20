@@ -1,0 +1,170 @@
+*&---------------------------------------------------------------------*
+*& Report ZHIRE_ALV_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZHIRE_ALV_U29.
+
+TABLES: vbak, vbap.
+
+SELECT-OPTIONS so_vbeln FOR vbak-vbeln.
+
+TYPES: BEGIN OF ty_vbak,
+         vbeln TYPE vbak-vbeln,
+         ernam TYPE vbak-ernam,
+         erdat TYPE vbak-erdat,
+         erzet TYPE vbak-erzet,
+         vbtyp TYPE vbak-vbtyp,
+       END OF ty_vbak.
+
+TYPES: BEGIN OF ty_vbap,
+          vbeln TYPE vbap-vbeln,
+          posnr TYPE vbap-posnr,
+          matnr TYPE vbap-matnr,
+          matwa TYPE vbap-matwa,
+          matkl TYPE vbap-matkl,
+       END OF ty_vbap.
+
+*       declaration of itab and workarea for vbak table
+DATA: lt_vbak TYPE TABLE of ty_vbak,
+      wa_vbak TYPE ty_vbak,
+
+*       declaration of itab and workarea for vbap table
+      lt_vbap TYPE TABLE of ty_vbap,
+      wa_vbap TYPE ty_vbap,
+
+*       declaration of fieldcat for vbap table
+      lt_fieldcat_vbap TYPE slis_t_fieldcat_alv,
+      wa_fieldcat_vbap TYPE slis_fieldcat_alv,
+
+      wa_keyinfo TYPE slis_keyinfo_alv.
+
+SELECT * FROM vbak INTO CORRESPONDING FIELDS OF TABLE LT_VBAK
+  WHERE vbeln in so_vbeln.
+
+IF LT_VBAK[] is NOT INITIAL.
+  SELECT * FROM vbap INTO CORRESPONDING FIELDS OF TABLE lt_vbap
+    FOR ALL ENTRIES IN LT_VBAK WHERE vbeln = LT_VBAK-vbeln.
+ENDIF.
+
+* Field catalog for VBAK TABLE
+wa_fieldcat_vbap-col_pos = 1.
+wa_fieldcat_vbap-fieldname = 'VBELN'.
+wa_fieldcat_vbap-tabname = 'LT_VBAK'.
+wa_fieldcat_vbap-seltext_l = 'Document Number'. "TEXT-001.--> use this
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_fieldcat_vbap-col_pos = 2.
+wa_fieldcat_vbap-fieldname = 'ERNAM'.
+wa_fieldcat_vbap-tabname = 'LT_VBAK'.
+wa_fieldcat_vbap-seltext_l = 'PERSON who created'.
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_fieldcat_vbap-col_pos = 3.
+wa_fieldcat_vbap-fieldname = 'ERDAT'.
+wa_fieldcat_vbap-tabname = 'LT_VBAK'.
+wa_fieldcat_vbap-seltext_l = 'Creation Date'.
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_fieldcat_vbap-col_pos = 4.
+wa_fieldcat_vbap-fieldname = 'ERZET'.
+wa_fieldcat_vbap-tabname = 'LT_VBAK'.
+wa_fieldcat_vbap-seltext_l = 'Entry Time'.
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_fieldcat_vbap-col_pos = 5.
+wa_fieldcat_vbap-fieldname = 'VBTYP'.
+wa_fieldcat_vbap-tabname = 'LT_VBAK'.
+wa_fieldcat_vbap-seltext_l = 'Document Category'.
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_fieldcat_vbap-col_pos = 1.
+wa_fieldcat_vbap-fieldname = 'VBELN'.
+wa_fieldcat_vbap-tabname = 'LT_VBAP'.
+wa_fieldcat_vbap-seltext_l = 'Document Number'.
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_fieldcat_vbap-col_pos = 2.
+wa_fieldcat_vbap-fieldname = 'POSNR'.
+wa_fieldcat_vbap-tabname = 'LT_VBAP'.
+wa_fieldcat_vbap-seltext_l = 'Document Item Number'.
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_fieldcat_vbap-col_pos = 3.
+wa_fieldcat_vbap-fieldname = 'MATNR'.
+wa_fieldcat_vbap-tabname = 'LT_VBAP'.
+wa_fieldcat_vbap-seltext_l = 'Material Number'.
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_fieldcat_vbap-col_pos = 4.
+wa_fieldcat_vbap-fieldname = 'MATWA'.
+wa_fieldcat_vbap-tabname = 'LT_VBAP'.
+wa_fieldcat_vbap-seltext_l = 'Material Entered'.
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_fieldcat_vbap-col_pos = 5.
+wa_fieldcat_vbap-fieldname = 'MATKL'.
+wa_fieldcat_vbap-tabname = 'LT_VBAP'.
+wa_fieldcat_vbap-seltext_l = 'Material Group'.
+APPEND wa_fieldcat_vbap to lt_fieldcat_vbap.
+CLEAR wa_fieldcat_vbap.
+
+wa_keyinfo-header01 = 'VBELN'.
+wa_keyinfo-item01 = 'VBELN'.
+
+CALL FUNCTION 'REUSE_ALV_HIERSEQ_LIST_DISPLAY'
+  EXPORTING
+*   I_INTERFACE_CHECK              = ' '
+   I_CALLBACK_PROGRAM             = sy-repid
+*   I_CALLBACK_PF_STATUS_SET       = ' '
+*   I_CALLBACK_USER_COMMAND        = ' '
+*   IS_LAYOUT                      =
+   IT_FIELDCAT                    = lt_fieldcat_vbap
+*   IT_EXCLUDING                   =
+*   IT_SPECIAL_GROUPS              =
+*   IT_SORT                        =
+*   IT_FILTER                      =
+*   IS_SEL_HIDE                    =
+*   I_SCREEN_START_COLUMN          = 0
+*   I_SCREEN_START_LINE            = 0
+*   I_SCREEN_END_COLUMN            = 0
+*   I_SCREEN_END_LINE              = 0
+*   I_DEFAULT                      = 'X'
+*   I_SAVE                         = ' '
+*   IS_VARIANT                     =
+*   IT_EVENTS                      =
+*   IT_EVENT_EXIT                  =
+    i_tabname_header               = 'LT_VBAK'
+    i_tabname_item                 = 'LT_VBAP'
+*   I_STRUCTURE_NAME_HEADER        =
+*   I_STRUCTURE_NAME_ITEM          =
+    is_keyinfo                     = wa_keyinfo
+*   IS_PRINT                       =
+*   IS_REPREP_ID                   =
+*   I_BYPASSING_BUFFER             =
+*   I_BUFFER_ACTIVE                =
+*   IR_SALV_HIERSEQ_ADAPTER        =
+*   IT_EXCEPT_QINFO                =
+*   I_SUPPRESS_EMPTY_DATA          = ABAP_FALSE
+* IMPORTING
+*   E_EXIT_CAUSED_BY_CALLER        =
+*   ES_EXIT_CAUSED_BY_USER         =
+  TABLES
+    t_outtab_header                =  lt_vbak
+    t_outtab_item                  = lt_vbap
+ EXCEPTIONS
+   PROGRAM_ERROR                  = 1
+   OTHERS                         = 2
+          .
+IF sy-subrc <> 0.
+* Implement suitable error handling here
+ENDIF.

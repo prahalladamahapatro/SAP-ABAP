@@ -1,0 +1,36 @@
+*&---------------------------------------------------------------------*
+*& Report ZLEVREQ_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZLEVREQ_U29.
+
+PARAMETERS : req_id   TYPE zrqst_id_u29 OBLIGATORY,
+             emp_id   TYPE zemp_id_u29 OBLIGATORY,
+             leavety  TYPE zleave_type_u29 ,
+             start_dt TYPE zstrt_date_u29,
+             end_date TYPE zend_date_u29.
+
+DATA :lt_leave TYPE TABLE OF ZLEAVE_QRSTU29,
+      wa_leave  TYPE ZLEAVE_QRSTU29,
+      wa_lvdemo TYPE ZLEAVE_QRSTU29,
+      lv_flag   TYPE i VALUE 0.
+
+wa_leave-rqst_id = req_id.
+wa_leave-emp_id = emp_id.
+wa_leave-leave_type = leavety.
+wa_leave-strt_dt = start_dt.
+wa_leave-end_dt = end_date.
+wa_leave-status = 'P'.
+
+SELECT * FROM  ZLEAVE_QRSTU29 INTO table lt_leave.
+  LOOP AT lt_leave INTO wa_lvdemo.
+    IF wa_lvdemo-rqst_id = req_id.
+      lv_flag = 1.
+    ENDIF.
+  ENDLOOP.
+  IF lv_flag EQ 0.
+    INSERT INTO ZLEAVE_QRSTU29 VALUES wa_leave.
+    CLEAR wa_leave.
+    WRITE 'Leave request applied successfully'.
+  ENDIF.

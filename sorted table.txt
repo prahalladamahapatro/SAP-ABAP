@@ -1,0 +1,67 @@
+*&---------------------------------------------------------------------*
+*& Report ZSORTEDTBL_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsortedtbl_u29.
+
+* Create a structure
+TYPES: BEGIN OF ty_struct,
+         stu_id TYPE int1,
+         name   TYPE c LENGTH 30,
+         age    TYPE int1,
+       END OF ty_struct.
+
+*Creation of Work area and internal table
+DATA: lt_struct TYPE SORTED TABLE OF ty_struct WITH UNIQUE KEY stu_id,
+      wa_struct TYPE ty_struct,
+      lv_num    TYPE int1.
+**********************************************************************
+*Don't use append, if you are not inserting the data sequentially rather use insert statement to insert the data into internal table
+**********************************************************************
+
+*to add the data into internal table with the help of work area
+wa_struct-stu_id = 1.
+wa_struct-name = 'Prahallada'.
+wa_struct-age = 20.
+APPEND wa_struct TO lt_struct.
+CLEAR wa_struct.
+
+wa_struct-stu_id = 2.
+wa_struct-name = 'Mahapatro'.
+wa_struct-age = 34.
+APPEND wa_struct TO lt_struct.
+CLEAR wa_struct.
+
+wa_struct-stu_id = 5.
+wa_struct-name = 'Rudra'.
+wa_struct-age = 22.
+*APPEND wa_struct to lt_struct.
+INSERT wa_struct INTO TABLE lt_struct.
+CLEAR wa_struct.
+
+wa_struct-stu_id = 3.
+wa_struct-name = 'Sipun'.
+wa_struct-age = 21.
+*APPEND wa_struct to lt_struct.
+INSERT wa_struct INTO TABLE lt_struct.
+CLEAR wa_struct.
+
+wa_struct-stu_id = 4.
+wa_struct-name = 'Fani'.
+wa_struct-age = 23.
+*APPEND wa_struct to lt_struct.
+INSERT wa_struct INTO TABLE lt_struct.
+CLEAR wa_struct.
+
+*to know the number of records in internal table
+DESCRIBE TABLE lt_struct LINES lv_num.
+WRITE: 'The number of records are :',lv_num.
+
+WRITE : /1(39) SY-uline.
+WRITE : /1(4) '|ID|', 5(30) 'Student Name', 35(5) '|AGE|'.
+WRITE : /1(39) SY-uline.
+LOOP AT lt_struct INTO wa_struct.
+  WRITE: / wa_struct-stu_id, wa_struct-name, wa_struct-age.
+ENDLOOP.
+WRITE : /1(39) SY-uline.

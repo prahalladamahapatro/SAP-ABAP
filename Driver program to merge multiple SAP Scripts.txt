@@ -1,0 +1,119 @@
+*&---------------------------------------------------------------------*
+*& Report ZDRIVERPRGM_MERGE_SCRIPT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZDRIVERPRGM_MERGE_SCRIPT.
+
+*Note: To merge multiple scripts in one driver program, we have to use 2 more FMs along with previous 3 FMs.
+*  3 FMs: OPEN_FORM, WRITE_FORM, CLOSE_FORM
+*  2 FMs: START_FORM, END_FORM
+
+**********************************************************************
+*Structure to call mutilple Forms in a single Driver Program using the above 5 FMs.
+*  OPEN_FORM
+*
+*    FOR 1ST FORM
+*    START_FORM
+*    WRITE_FORM
+*    END_FORM
+*
+*    FOR 2ND FORM
+*    START_FORM
+*    WRITE_FORM
+*    END_FORM
+*
+*    FOR 3RD FORM
+*    START_FORM
+*    WRITE_FORM
+*    END_FORM
+*
+*  CLOSE_FORM
+**********************************************************************
+
+
+* Beginning of the Script
+CALL FUNCTION 'OPEN_FORM'.
+
+************************************  Calling the first form ***********************************
+CALL FUNCTION 'START_FORM'
+ EXPORTING
+*   ARCHIVE_INDEX          =
+   FORM                   = 'ZMERGE_SCRIPT1'
+   LANGUAGE               = sy-langu
+
+ EXCEPTIONS
+   FORM                   = 1
+   FORMAT                 = 2
+   UNENDED                = 3
+   UNOPENED               = 4
+   UNUSED                 = 5
+   SPOOL_ERROR            = 6
+   CODEPAGE               = 7
+   OTHERS                 = 8 .
+
+ CALL FUNCTION 'WRITE_FORM'
+  EXPORTING
+    ELEMENT                        = 'E1'
+*    FUNCTION                       = 'SET'
+*    TYPE                           = 'BODY'
+    WINDOW                         = 'MAIN'.
+
+CALL FUNCTION 'END_FORM'.
+
+
+************************************  Calling the Second form ***********************************
+CALL FUNCTION 'START_FORM'
+ EXPORTING
+*   ARCHIVE_INDEX          =
+   FORM                   = 'ZMERGE_SCRIPT2'
+   LANGUAGE               = sy-langu
+
+ EXCEPTIONS
+   FORM                   = 1
+   FORMAT                 = 2
+   UNENDED                = 3
+   UNOPENED               = 4
+   UNUSED                 = 5
+   SPOOL_ERROR            = 6
+   CODEPAGE               = 7
+   OTHERS                 = 8 .
+
+ CALL FUNCTION 'WRITE_FORM'
+  EXPORTING
+    ELEMENT                        = 'E1'
+*    FUNCTION                       = 'SET'
+*    TYPE                           = 'BODY'
+    WINDOW                         = 'MAIN'.
+
+CALL FUNCTION 'END_FORM'.
+
+
+************************************  Calling the Third form ***********************************
+CALL FUNCTION 'START_FORM'
+ EXPORTING
+*   ARCHIVE_INDEX          =
+   FORM                   = 'ZMERGE_SCRIPT3'
+   LANGUAGE               = sy-langu
+
+ EXCEPTIONS
+   FORM                   = 1
+   FORMAT                 = 2
+   UNENDED                = 3
+   UNOPENED               = 4
+   UNUSED                 = 5
+   SPOOL_ERROR            = 6
+   CODEPAGE               = 7
+   OTHERS                 = 8 .
+
+ CALL FUNCTION 'WRITE_FORM'
+  EXPORTING
+    ELEMENT                        = 'E1'
+*    FUNCTION                       = 'SET'
+*    TYPE                           = 'BODY'
+    WINDOW                         = 'MAIN'.
+
+CALL FUNCTION 'END_FORM'.
+
+*  To close the Script after calling all the forms you want to merge.
+CALL FUNCTION 'CLOSE_FORM'.

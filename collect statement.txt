@@ -1,0 +1,72 @@
+*&---------------------------------------------------------------------*
+*& Report ZINTTBL1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zinttbl1_u29.
+
+* declare the structure - mixture of datatype and data element
+*to perform the collect operation, one of the fields should be of numeric type(integer, packed no, float no)
+TYPES: BEGIN OF ty_struct,
+         cname  TYPE c LENGTH 3,
+         dept   TYPE c LENGTH 7,
+*         amoutn TYPE ZFEESPM , "creating the field with the help of data element
+         amoutn TYPE i,
+       END OF ty_struct.
+
+* declaration of table and work area
+DATA: lt_struct  TYPE TABLE OF ty_struct,
+      lt_struct1 TYPE TABLE OF ty_struct,
+      wa_struct  TYPE ty_struct,
+      lv_num     TYPE ty_struct.
+
+*APPEND the values to the table*
+
+wa_struct-cname = 'ABC'.
+wa_struct-dept = 'HR'.
+wa_struct-amoutn = 10000.
+APPEND wa_struct TO lt_struct.
+CLEAR wa_struct.
+
+wa_struct-cname = 'ABC'.
+wa_struct-dept = 'TECH'.
+wa_struct-amoutn = 40000.
+APPEND wa_struct TO lt_struct.
+CLEAR wa_struct.
+
+wa_struct-cname = 'ABC'.
+wa_struct-dept = 'TRAIN'.
+wa_struct-amoutn = 20000.
+APPEND wa_struct TO lt_struct.
+CLEAR wa_struct.
+
+wa_struct-cname = 'ABC'.
+wa_struct-dept = 'TECH'.
+wa_struct-amoutn = 30000.
+APPEND wa_struct TO lt_struct.
+CLEAR wa_struct.
+
+wa_struct-cname = 'ABC'.
+wa_struct-dept = 'HR'.
+wa_struct-amoutn = 20000.
+APPEND wa_struct TO lt_struct.
+CLEAR wa_struct.
+
+WRITE:/ 'Before the collect operation'.
+LOOP AT lt_struct INTO wa_struct.
+  WRITE:/ wa_struct-cname, wa_struct-dept, wa_struct-amoutn.
+  CLEAR wa_struct.
+ENDLOOP.
+
+* 1. Collect operation
+* while performing the collect operation, the internal table should be changed, otherwise the data will override in it.
+* the string or character types are case-sensitive and have different meaning.
+LOOP AT lt_struct INTO wa_struct.
+  COLLECT wa_struct INTO lt_struct1.
+ENDLOOP.
+
+WRITE:/ 'After the collect operation'.
+LOOP AT lt_struct1 INTO wa_struct.
+  WRITE:/ wa_struct-cname, wa_struct-dept, wa_struct-amoutn.
+  CLEAR wa_struct.
+ENDLOOP.

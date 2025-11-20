@@ -1,0 +1,60 @@
+ERROR-1. DBSQL_INVALID_CURSOR GET_FIFO_UI_ALL_PROD /SAPSLL/IVM_STOCK_FREEZED_SHOW.
+SOLUTION:
+
+DATABASE CURSOR:
+	- A database cursor in SAP ABAP is a database object that allows row-by-row processing of a result set returned by a query. Essentially, it acts as a 	pointer to a set of rows in the database and enables sequential access to individual rows rather than fetching the entire result set at once.
+	- It is a pointer to a specific position within the result set of a database query.
+	- When a cursor is opened, it is positioned before the first row of the result set.
+	- The cursor must be explicitly opened (OPEN CURSOR), fetched from (FETCH), and closed (CLOSE CURSOR).
+Error Part:
+	- The error DBSQL_INVALID_CURSOR in SAP signifies that a database cursor operation is attempted on a cursor that is either not open yet or has already 	been closed. This leads to a runtime error or dump with the message "Cursor already closed or not open yet."
+	- The error is common in data extraction, client copy, and reports involving cursors, i.e., Happens in reports like SBAL_DELETE or during client 	copy/deletion (SCC1, SCCL, SCC5).
+	- appears as an exception of type CX_SY_OPEN_SQL_DB.
+
+SAP NOTES:
+• SAP Notes 2854781 and 3346934 describe the runtime error DBSQL_INVALID_CURSOR occurring in different scenarios such as datasource testing or client copy failures. The root cause is the invalid cursor state during FETCH or CLOSE CURSOR operations.
+• SAP Notes 848163 and 860897 address similar errors related to logical databases (KDF, SDF, DDF). They explain that the error arises after an information message confirmation during archive data selection, causing the cursor to close prematurely.
+• SAP Note 3037557 discusses the error occurring in the SBAL_DELETE report, where the cursor is closed or invalid during deletion operations.
+• If you are encountering this error in the program /SAPSLL/IVM_STOCK_FREEZED_SHOW or the related extraction, it likely means that the cursor handling in that program or datasource is faulty—attempting to fetch or close a cursor that is not open.
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+ERROR-2. The SAP message FZ219 — "Individual characters could not be converted from code page 4103 to Code P.1100".
+SOLUTION:
+	- This message indicates that during a character set (code page) conversion process, certain characters in the source code page (4103) could not be 	mapped or converted to the target code page (1100).
+	- This typically occurs during file download, upload or data transfer operations where text data is converted between different character encodings.
+	- The error means some characters in the source data do not exist in the target code page, causing conversion failures for those characters.
+
+• When Does This Occur?
+	- During file download or upload when SAP converts file content from one code page to another.
+	- When the user’s system or SAP system uses different code pages.
+	- When special or extended characters are present that are not supported in the target code page.
+	- In data exchange scenarios involving different language or regional settings.
+
+• Recommended Procedure:
+- User Parameter DCP controls code page conversion during file download or upload.
+
+Options:
+	1. Set DCP to the desired code page:
+	- Assign the code page you want the file to be converted to before download. For example, if you want the file in code page 1100, set DCP to 1100.
+
+	2. Set DCP to NONE:
+	- If you want to avoid any conversion and keep the original file encoding, set the user parameter DCP to NONE. This means no code page conversion 	will be done, and the file will be downloaded/uploaded as-is.
+
+Check and adjust the user parameter DCP in your user profile via transaction SU3 or SU01 (under Parameters tab).
+
+Additional Information and SAP Notes
+SAP Notes related to message FZ219 and code page conversion issues:
+• 113565 - Explanation of code page conversion errors and how to handle DCP parameter settings
+• 122739 - How to set user parameter DCP to avoid conversion errors during file download
+• 144916 - Details on supported code pages and character conversion in SAP GUI and file download/upload
+• 178595 - Troubleshooting character conversion problems when downloading files with special characters
+• 182795 - How to handle code page conversion issues in SAPscript and Smart Forms
+• 460000 - General overview of code page handling and conversion in SAP systems
+
+Useful Tips:
+• Always check the source and target code pages involved in your file operations.
+• Use transaction SPAD to check and configure printer and spool code pages if printing is involved.
+• For Unicode systems, ensure that the system and user parameters are consistent to avoid conversion issues.
+• If you frequently work with special characters or multiple languages, consider using Unicode-enabled systems and tools.
+
+----------------------------------------------------------------------------------------------------------------------------------

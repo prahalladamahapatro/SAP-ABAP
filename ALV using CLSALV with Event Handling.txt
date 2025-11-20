@@ -1,0 +1,127 @@
+*&---------------------------------------------------------------------*
+*& Report ZCLSALV_PRG5_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zclsalv_prg5_u29.
+
+TABLES: vbap,vbak.
+
+INITIALIZATION.
+  SELECT-OPTIONS: so_vbeln FOR vbak-vbeln.
+
+* declaration of structures
+  TYPES: BEGIN OF ty_vbak,
+           vbeln TYPE vbeln_va,
+           erdat TYPE erdat,
+           ernam TYPE ernam,
+           erzet TYPE erzet,
+         END OF ty_vbak.
+
+  TYPES: BEGIN OF ty_vbap,
+           vbeln TYPE vbeln_va,
+           matnr TYPE matnr,
+           posnr TYPE posnr,
+           posar TYPE posar,
+         END OF ty_vbap.
+
+  DATA: lt_vbak TYPE TABLE OF ty_vbak,
+        wa_vbak TYPE ty_vbak,
+
+        lt_vbap TYPE TABLE OF ty_vbap,
+        wa_vbap TYPE ty_vbap.
+
+*     Declaration of objects for the cl_salv classes
+  DATA: lo_alv1 TYPE REF TO cl_salv_table,
+        lo_alv2 TYPE REF TO cl_salv_table,
+        lo_fun1 TYPE REF TO cl_salv_functions_list,
+        lo_evnt TYPE REF TO cl_salv_events_table.
+
+* Decalration of Event class to handle the event
+CLASS event_cls DEFINITION.
+  PUBLIC SECTION.
+    METHODS event_hndl FOR EVENT double_click OF cl_salv_events_table IMPORTING row column. "--> write column not col, culmn, etc
+ENDCLASS.
+
+CLASS event_cls IMPLEMENTATION.
+  METHOD event_hndl.
+    READ TABLE lt_vbak INTO wa_vbak INDEX row.
+    IF sy-subrc = 0.
+      SELECT * FROM vbap INTO CORRESPONDING FIELDS OF
+        TABLE lt_vbap WHERE vbeln = wa_vbak-vbeln.
+
+      IF sy-subrc = 0.
+        TRY.
+            CALL METHOD cl_salv_table=>factory
+*            EXPORTING
+*              list_display   = IF_SALV_C_BOOL_SAP=>FALSE
+*              r_container    =
+*              container_name =
+              IMPORTING
+                r_salv_table = lo_alv2
+              CHANGING
+                t_table      = lt_vbap.
+          CATCH cx_salv_msg.
+        ENDTRY.
+
+        CALL METHOD lo_alv2->display.
+      ENDIF.
+    ENDIF.
+
+  ENDMETHOD.
+ENDCLASS.
+
+*CLASS event_cls1 DEFINITION.
+*  PUBLIC SECTION.
+*  METHODs event_hndl1 for EVENT double_click of cl_salv_events_table IMPORTING row column.
+*  ENDCLASS.
+*
+*CLASS event_cls1 IMPLEMENTATION.
+*  METHOD event_hndl1.
+*    IF column = 'VBELN'.
+*      set PARAMETER ID 'AUN' FIELD wa_vbap-vbeln.
+*      CALL TRANSACTION 'VA03'.
+*    ENDIF.
+*    ENDMETHOD.
+*  ENDCLASS.
+
+START-OF-SELECTION.
+
+  SELECT * FROM vbak INTO CORRESPONDING FIELDS OF TABLE lt_vbak
+    WHERE vbeln IN so_vbeln.
+
+  TRY.
+      CALL METHOD cl_salv_table=>factory
+*      EXPORTING
+*        list_display   = IF_SALV_C_BOOL_SAP=>FALSE
+*        r_container    =
+*        container_name =
+        IMPORTING
+          r_salv_table = lo_alv1
+        CHANGING
+          t_table      = lt_vbak.
+    CATCH cx_salv_msg.
+  ENDTRY.
+
+  CALL METHOD lo_alv1->get_functions
+    RECEIVING
+      value = lo_fun1.
+
+  CALL METHOD lo_alv1->get_event
+    RECEIVING
+      value = lo_evnt.
+
+  CALL METHOD lo_fun1->set_all
+*    EXPORTING
+*      value  = IF_SALV_C_BOOL_SAP=>TRUE
+    .
+
+  DATA: lo_cls TYPE REF TO event_cls.
+  CREATE OBJECT lo_cls.
+  SET HANDLER lo_cls->event_hndl FOR lo_evnt.
+
+*  DATA: lo_cls1 TYPE REF TO event_cls1.
+*  CREATE OBJECT lo_cls1.
+*  SET HANDLER lo_cls1->event_hndl1 FOR lo_evnt.
+
+  CALL METHOD lo_alv1->display.

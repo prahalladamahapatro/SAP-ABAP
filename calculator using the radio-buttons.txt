@@ -1,0 +1,50 @@
+*&---------------------------------------------------------------------*
+*& Report ZRADBTNCAL_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zradbtncal_u29.
+
+SELECTION-SCREEN : BEGIN OF BLOCK b1 WITH FRAME TITLE text001.
+*  SELECTION-SCREEN: BEGIN OF LINE.
+  PARAMETERS : num1 TYPE i OBLIGATORY,
+               num2 TYPE i OBLIGATORY.
+*  SELECTION-SCREEN: END OF LINE.
+*               op   TYPE c LENGTH 3 OBLIGATORY,
+  PARAMETERS:  add  RADIOBUTTON GROUP rb1 USER-COMMAND usrc,
+               sub  RADIOBUTTON GROUP rb1,
+               mul  RADIOBUTTON GROUP rb1,
+               div  RADIOBUTTON GROUP rb1,
+               mod  RADIOBUTTON GROUP rb1.
+SELECTION-SCREEN : END OF BLOCK b1.
+
+* Variables used to store the result
+DATA: diff    TYPE i,
+      sum     TYPE i,
+      product TYPE i,
+      divide     TYPE i,
+      rem     TYPE i.
+
+* Operation to be performed and stored in the variable
+
+*WRITE: 'The sum, diff, product, div, mod of the 2 numbers are'.
+*WRITE: / sum, diff, product, div, mod.
+
+IF add = 'X'.
+  sum = num1 + num2.
+  WRITE : 'addition of the following number is ', sum.
+ELSEIF sub = 'X'.
+  diff  = num1 - num2.
+  WRITE : 'subtraction of the following number is ', diff.
+  WRITE : /'NOTE: In subtraction, if result is negative, then the sign will displayed at the end of the result'.
+ELSEIF mul = 'X'.
+  product = num1 * num2.
+  WRITE : 'product of the following number is ', product.
+ELSEIF div = 'X'.
+  divide = num1 / num2.
+  WRITE : 'division of the following number is ', divide.
+ELSEIF mod = 'X'.
+  rem = num1 MOD num2.
+  WRITE : 'modulus of the following number is ', rem.
+
+ENDIF.

@@ -1,0 +1,93 @@
+*&---------------------------------------------------------------------*
+*& Report ZSUMPRG_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZSUMPRG_U29.
+WRITE : /'Sum of 2 numbers with default values'.
+DATA: var1 TYPE i VALUE 20,
+      var2 type i VALUE 30,
+      var3 TYPE i.
+
+var3 = var1 + var2.
+WRITE :/'SUM OF',var1,' &',var2,' is',var3.
+
+WRITE: /'SUM of 2 numbers with user input'.
+PARAMETERS: N1 TYPE i OBLIGATORY ,
+            N2 TYPE i OBLIGATORY.
+DATA SUM TYPE i.
+SUM = N1 + N2.
+WRITE:/1(7)'SUM OF',8(4) N1, 12(3)' &',15(4) N2, 19(4) ' IS ',23 SUM.
+
+-----------------------------------------------SUBTRACT-----------------------------------------------------
+*&---------------------------------------------------------------------*
+*& Report ZSUBPRG_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsubprg_u29.
+WRITE : /'Subtraction of 2 numbers with default values'.
+DATA: var1 TYPE i VALUE 20,
+      var2 TYPE i VALUE 30,
+      var3 TYPE i.
+
+var3 = var1 - var2.
+WRITE :/'SUB OF',var1,' &',var2,' is'.
+IF var3 < 0.
+  WRITE : '-'.
+ENDIF.
+WRITE var3 NO-SIGN NO-ZERO.
+
+WRITE: /'SUB of 2 numbers with user input'.
+PARAMETERS: n1 TYPE i OBLIGATORY,
+            n2 TYPE i OBLIGATORY.
+DATA sub TYPE i.
+sub = n1 - n2.
+WRITE:/1(7)'SUB OF',8(6) n1, 14(3)' &',17(6) n2, 23(4) ' IS ',27 sub.
+
+
+-----------------------------------------------MULTIPLICATION-----------------------------------------------------
+*&---------------------------------------------------------------------*
+*& Report ZMULPRG_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZMULPRG_U29.
+WRITE : /'Multiplication of 2 numbers with default values'.
+DATA: var1 TYPE i VALUE 20,
+      var2 type i VALUE 30,
+      var3 TYPE i.
+
+var3 = var1 * var2.
+WRITE :/'MUL OF',var1,' &',var2,' is',var3.
+
+WRITE: /'Multiplication of 2 numbers with user input'.
+PARAMETERS: N1 TYPE i OBLIGATORY ,
+            N2 TYPE i OBLIGATORY.
+DATA MUL TYPE i.
+MUL = N1 * N2.
+WRITE:/1(7)'MUL OF',8(4) N1, 12(3)' &',15(4) N2, 19(4) ' IS ',23 MUL.
+
+
+-----------------------------------------------DIVISION-----------------------------------------------------
+*&---------------------------------------------------------------------*
+*& Report ZMODPRG_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZMODPRG_U29.
+WRITE : /'Modulus of 2 numbers with default values'.
+DATA: var1 TYPE i VALUE 20,
+      var2 TYPE i VALUE 3,
+      var3 TYPE i.
+
+*modulus of 2 numbers
+var3 = var1 MOD var2.
+WRITE :/'MOD OF',var1,' &',var2,' is', var3.
+
+WRITE: /'MOD of 2 numbers with user input'.
+PARAMETERS: n1 TYPE i OBLIGATORY,
+            n2 TYPE i OBLIGATORY.
+DATA rem TYPE i.
+rem = n1 MOD n2.
+WRITE:/1(7)'MOD OF',8(6) n1, 14(3)' &',17(6) n2, 23(4) ' IS ',27 rem.

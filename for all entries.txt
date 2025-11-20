@@ -1,0 +1,123 @@
+*&---------------------------------------------------------------------*
+*& Report ZFOR_ALL_ENTRIES1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zfor_all_entries1_u29.
+
+TABLES: vbak, vbap, mara, makt.
+
+*Declare the structure for 4 tables
+
+TYPES: BEGIN OF ty_vbak,
+         vbeln TYPE vbeln,
+         ernam TYPE ernam,
+         erzet TYPE erzet,
+       END OF ty_vbak.
+
+TYPES: BEGIN OF ty_vbap,
+         vbeln TYPE vbeln,
+         posnr TYPE posnr,
+         matnr TYPE matnr,
+       END OF ty_vbap.
+
+TYPES: BEGIN OF ty_mara,
+         matnr TYPE matnr,
+         ernam TYPE ernam,
+         pstat TYPE pstat,
+       END OF ty_mara.
+
+TYPES: BEGIN OF ty_makt,
+         matnr TYPE matnr,
+         spras TYPE spras,
+         maktx TYPE maktx,
+       END OF ty_makt.
+
+* declare the final structure
+TYPES: BEGIN OF ty_final,
+*  from vbak structure
+         vbeln TYPE vbeln,
+         ernam TYPE ernam,
+         erzet TYPE erzet,
+
+*  from vbap structure
+         posnr TYPE posnr,
+         matnr TYPE matnr,
+
+*  from mara structure
+         pstat TYPE pstat,
+
+*  from makt table
+         spras TYPE spras,
+         maktx TYPE maktx,
+       END OF ty_final.
+
+* Declaration of the internal tble and workarea
+DATA: lt_vbak  TYPE TABLE OF ty_vbak,
+      wa_vbak  TYPE ty_vbak,
+
+      lt_vbap  TYPE TABLE OF ty_vbap,
+      wa_vbap  TYPE ty_vbap,
+
+      lt_mara  TYPE TABLE OF ty_mara,
+      wa_mara  TYPE ty_mara,
+
+      lt_makt  TYPE TABLE OF ty_makt,
+      wa_makt  TYPE ty_makt,
+
+      lt_final TYPE TABLE OF ty_final,
+      wa_final TYPE ty_final.
+
+*FETCH the tabale from ist table
+SELECT vbeln
+       ernam
+       erzet FROM vbak INTO TABLE lt_vbak .
+
+* fetch the data from table2 based on table1
+SELECT vbeln
+       posnr
+*       matnr FROM vbap INTO TABLE lt_vbap .
+       matnr FROM vbap INTO TABLE lt_vbap FOR ALL ENTRIES IN lt_vbak WHERE vbeln = lt_vbak-vbeln.
+
+*LOOP AT lt_vbap INTO wa_vbap.
+*  WRITE:/ wa_vbap-vbeln, wa_vbap-posnr, wa_vbap-matnr.
+*ENDLOOP.
+
+*to fetch the data from mara table
+SELECT matnr
+       ernam
+       pstat FROM mara INTO TABLE lt_mara FOR ALL ENTRIES IN lt_vbap WHERE matnr = lt_vbap-matnr.
+
+*  to fetch the data from 2nd table based on 1st table
+SELECT matnr
+       spras
+*       maktx FROM makt INTO TABLE lt_makt .
+       maktx FROM makt INTO TABLE lt_makt FOR ALL ENTRIES IN lt_mara WHERE matnr = lt_mara-matnr.
+
+* to fetch the from both combined structure into final structure
+LOOP AT lt_vbak INTO wa_vbak.
+  IF lt_vbak IS NOT INITIAL.
+    READ TABLE lt_vbap INTO wa_vbap WITH KEY vbeln = wa_vbak-vbeln.
+    IF lt_vbap IS NOT INITIAL.
+      READ TABLE lt_mara INTO wa_mara WITH KEY matnr = wa_vbap-matnr.
+      IF lt_mara IS NOT INITIAL.
+        READ TABLE lt_makt INTO wa_makt WITH KEY matnr = wa_makt-matnr.
+        wa_final-vbeln = wa_vbak-vbeln.
+        wa_final-ernam = wa_vbak-ernam.
+        wa_final-erzet = wa_vbak-erzet.
+        wa_final-ernam = wa_vbap-matnr.
+        wa_final-ernam = wa_vbap-posnr.
+        wa_final-ernam = wa_mara-pstat.
+        wa_final-ernam = wa_makt-maktx.
+        wa_final-ernam = wa_makt-spras.
+        APPEND wa_final TO lt_final.
+        CLEAR wa_final.
+      ENDIF.
+    ENDIF.
+  ENDIF.
+ENDLOOP.
+
+LOOP AT lt_final INTO wa_final.
+  WRITE:/ wa_final-vbeln, wa_final-ernam,wa_final-erzet,wa_final-matnr,wa_final-posnr,wa_final-pstat,wa_final-spras.
+  CLEAR wa_makt.
+ENDLOOP.

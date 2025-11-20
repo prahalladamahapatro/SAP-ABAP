@@ -1,0 +1,35 @@
+*&---------------------------------------------------------------------*
+*& Report ZASSIGN3_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zassign3_u29.
+
+TABLES: mara, ekpo.
+
+* full structure for the table
+TYPES: BEGIN OF ty_purdata,
+         matnr TYPE mara-matnr,
+         mtart TYPE mara-mtart,
+         matkl TYPE mara-matkl,
+         ernam TYPE mara-ernam,
+         ebeln TYPE ekpo-ebeln,
+         ebelp TYPE ekpo-ebelp,
+       END OF ty_purdata.
+
+DATA: lt_purdata TYPE TABLE OF ty_purdata,
+      wa_purdata TYPE ty_purdata.
+
+SELECT mara~matnr
+       mara~mtart
+       mara~matkl
+       mara~ernam
+       ekpo~ebeln
+       ekpo~ebelp FROM mara
+  INNER JOIN ekpo on mara~matnr = ekpo~matnr
+  INTO TABLE lt_purdata.
+
+  LOOP AT lt_purdata INTO wa_purdata.
+WRITE:/ wa_purdata-matnr, wa_purdata-mtart, wa_purdata-matkl, wa_purdata-ebeln,wa_purdata-ernam, wa_purdata-ebelp.
+CLEAR wa_purdata.
+  ENDLOOP.

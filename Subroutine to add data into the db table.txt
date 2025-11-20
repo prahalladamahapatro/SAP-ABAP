@@ -1,0 +1,39 @@
+*&---------------------------------------------------------------------*
+*& Report ZSUBRTN1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsubrtn1_u29.
+
+TYPES: BEGIN OF ty_struct,
+         cname  TYPE c LENGTH 3,
+         dept   TYPE c LENGTH 7,
+         amoutn TYPE i,
+       END OF ty_struct.
+
+data: lt_struct TYPE TABLE of ty_struct,
+      wa_struct TYPE ty_struct.
+
+* To perform insertion operation into the internal table
+PERFORM add_data USING 'ABC' 'HR' 10000 CHANGING lt_struct.
+PERFORM add_data USING 'ABC' 'TECH' 40000 CHANGING lt_struct.
+PERFORM add_data USING 'ABC' 'TRAIN' 20000 CHANGING lt_struct.
+PERFORM add_data USING 'ABC' 'TECH' 30000 CHANGING lt_struct.
+PERFORM add_data USING 'ABC' 'HR' 20000 CHANGING lt_struct.
+
+*wa_struct-cname = 'ABC'.
+*wa_struct-dept = 'HR'.
+*wa_struct-amoutn = 20000.
+*APPEND wa_struct TO lt_struct.
+*CLEAR wa_struct.
+
+*to dispaly the data
+PERFORM display_data USING lt_struct.
+
+*LOOP AT lt_struct INTO wa_struct.
+*  WRITE:/ wa_struct-cname, wa_struct-dept, wa_struct-amoutn.
+*CLEAR wa_struct.
+*ENDLOOP.
+
+* include program
+INCLUDE zbrtn1_u29_add_dataf01.

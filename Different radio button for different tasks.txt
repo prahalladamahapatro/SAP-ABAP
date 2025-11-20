@@ -1,0 +1,40 @@
+*&---------------------------------------------------------------------*
+*& Report ZRADBUTTASK_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zradbuttask_u29.
+SELECTION-SCREEN: BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+
+  SELECTION-SCREEN: BEGIN OF LINE.
+    PARAMETERS: r_but1 RADIOBUTTON GROUP rb1 USER-COMMAND userc.
+    SELECTION-SCREEN COMMENT 10(15) FOR FIELD r_but1.
+
+    PARAMETERS: r_but2 RADIOBUTTON GROUP rb1.
+    SELECTION-SCREEN COMMENT 30(15) FOR FIELD r_but2.
+
+    PARAMETERS: r_but3 RADIOBUTTON GROUP rb1.
+    SELECTION-SCREEN COMMENT 50(15) FOR FIELD r_but3.
+
+** We can't use the "SELECTION-SCREEN COMMENT" statements independently or separately.
+*SELECTION-SCREEN COMMENT 10(15) FOR FIELD r_but1.
+*SELECTION-SCREEN COMMENT 30(15) FOR FIELD r_but2.
+  SELECTION-SCREEN: END OF LINE.
+
+  PARAMETERS: p_val TYPE char10 MODIF ID xyz.
+
+SELECTION-SCREEN: END OF BLOCK b1.
+
+IF r_but1 = 'X'.
+  PERFORM display1.
+ELSEIF r_but2 = 'X'.
+  WRITE:/ 'OPTION - 2 selected'.
+ELSEIF r_but3 = 'X'.
+  WRITE:/ 'OPTION - 3 selected'.
+ELSE.
+  WRITE:/ 'Enter a valid option'.
+ENDIF.
+
+FORM display1.
+  WRITE:/ 'OPTION - 1 selected'.
+ENDFORM.

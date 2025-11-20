@@ -1,0 +1,399 @@
+# **SAP ABAP Interview Questions by Topic**
+
+*(Easy → Medium → Difficult)*
+
+---
+
+# **1. DATA DICTIONARY**
+
+### **Easy**
+
+1. What is a Data Dictionary in SAP ABAP?
+ANS : Data Dictionary is a central repository in SAP where we define and manage metadata objects such as tables, views, structures, data elements, domains, search helps, lock objects, and 	more. It controls how data is stored, structured, and accessed at the database level.
+
+2. What is the difference between a table, a structure, and a view?
+ANS: 	In SAP, a database table is a physical data container. It stores data permanently in rows and columns and supports full CRUD operations.
+	A structure is a blueprint that defines fields but does not store any data. It is used only for data formatting and temporary storage in programs.
+	A view is a virtual combination of fields from one or more tables. It does not store data; during runtime, it only reads data from underlying tables.
+
+3. What are domains and data elements?
+ANS:	In SAP, a domain defines the technical attributes of a field — the data type, length, and allowed value range or value table.
+	A data element defines the semantic attributes — the field’s meaning, description, and labels used in programs, screens,
+
+4. What is a foreign key relationship?
+ANS:	A foreign key is a field (or set of fields) in a child table that refers to the primary key of a parent table. It links the tables and ensures referential integrity — meaning only 	valid, existing values from the parent table can be entered in the child table. This relationship helps maintain data consistency across tables.
+
+5. What is a search help?
+ANS:	In SAP, a Search Help (F4 help) is used to display possible input values to the user and return selected values back to the input field. 
+	SAP provides two types of search helps:
+	1. Elementary Search Help → Defines a single search path based on one table, view, or custom search method.
+	2. Collective Search Help → Groups multiple elementary search helps together and lets the user choose among different search paths.
+
+
+### **Medium**
+
+6. Explain the difference between a database view, projection view, and help view.
+ANS: 	A database view is a virtual view created using joins on one or more database tables.
+	A projection view is defined on a single table and exposes only selected fields. It is used to restrict field-level access.
+	A maintenance view allows updating multiple related tables together through a TMG (SM30). It is used for CRUD operations on tables having foreign-key relationships.
+	A help view is used by search helps to read data from multiple tables and provide value help to the user.
+
+7. What is a lock object and why is it used?
+ANS:	Lock objects are used in SAP to synchronize access to shared data and prevent data inconsistency. When multiple users attempt to change the same record, the lock object ensures 	only one user can update it at a time.
+	In SAP, lock objects (beginning with ‘E’) generate two function modules — ENQUEUE and DEQUEUE — which apply and release application-level locks. Lock objects use SAP’s enqueue 	server and support different lock modes such as exclusive and shared locks.
+
+8. What is buffering? Explain buffering types.
+ANS: 	Buffering is the mechanism where SAP stores table records in the application server to reduce database hits and improve performance. When a buffered table is read multiple times, 	the system retrieves data from memory instead of the database.
+	SAP supports three types of buffering:
+	1. Single-record buffering – Only individual records are buffered based on key access.
+	2. Generic buffering – Records are buffered based on a part of the key (generic key prefix).
+	3. Full buffering – The entire table is buffered in the application server.
+	Buffering can be applied only on transparent tables.
+
+9. What is the use of table maintenance generator (SM30)?
+ANS: 	TMG is used to generate maintenance dialogs for transparent tables so that users can perform Create, Read, Update, and Delete operations through a SM30.
+	It works only for tables that have a proper primary key and are allowed for maintenance.
+
+10. What happens when you activate a Data Dictionary object?
+
+### **Difficult**
+
+11. Explain referential integrity in the context of Data Dictionary.
+12. What is the difference between pooled, cluster, and transparent tables?
+13. How does SAP handle client dependency at the table level?
+14. What is enhancement category? Why is it important?
+15. How would you improve performance using data element/domain design?
+
+---
+
+# **2. MODULE POOL (DYNPRO) PROGRAMMING**
+
+### **Easy**
+
+1. What is a module pool program?
+2. What is the difference between PBO and PAI?
+3. What is a screen painter?
+
+### **Medium**
+
+4. How do you create and call subscreens?
+5. Explain chain–endchain validation.
+6. How do you use OK_CODE?
+7. How do you pass values between screens?
+8. What is the AT EXIT-COMMAND?
+
+### **Difficult**
+
+9. How do you implement tabstrip controls?
+10. How do you handle table controls with dynamic data?
+11. Explain the flow logic of a complex module pool program.
+12. How do you design a multi-step transaction using module pool?
+13. What are the challenges in updating database tables through screens?
+
+---
+
+# **3. CLASSICAL REPORTS**
+
+### **Easy**
+
+1. What are the events in a classical report?
+2. What is the use of START-OF-SELECTION?
+3. Difference between WRITE and ULINE?
+
+### **Medium**
+
+4. Explain TOP-OF-PAGE and END-OF-PAGE.
+5. How do you perform line selection?
+6. What is HIDE statement?
+
+### **Difficult**
+
+7. Explain the flow logic if you use both AT SELECTION-SCREEN and START-OF-SELECTION.
+8. How do you handle performance issues in classical reports?
+9. How do you implement user commands in classical reports?
+10. How does interactive reporting work internally?
+
+---
+
+# **4. INTERACTIVE REPORTS**
+
+### **Easy**
+
+1. What is an interactive report?
+2. What is AT LINE-SELECTION?
+3. How do you get the line number in an interactive report?
+
+### **Medium**
+
+4. Explain secondary list levels.
+5. How do you pass parameters between main and secondary lists?
+6. What is the purpose of HIDE?
+
+### **Difficult**
+
+7. How do you create multiple drilldown levels?
+8. How do you implement custom PF-status for interactive reports?
+9. How do you handle performance when multiple levels of data are fetched dynamically?
+10. Explain error handling within interactive drilldowns.
+
+---
+
+# **5. ALV REPORTS**
+
+### **Easy**
+
+1. What is ALV?
+2. Difference between REUSE_ALV_LIST_DISPLAY and GRID_DISPLAY.
+3. What are ALV layouts?
+
+### **Medium**
+
+4. What is the field catalog?
+5. What are ALV events?
+6. How do you enable sorting and filtering?
+7. How do you use custom PF-status in ALV?
+
+### **Difficult**
+
+8. Difference between OO ALV vs REUSE ALV.
+9. How do you implement hotspots and double-click?
+10. How do you handle editable ALV with validations?
+11. How do you embed ALV in a screen (module pool)?
+
+---
+
+# **6. OO ABAP**
+
+### **Easy**
+
+1. What is a class and object?
+2. What are methods and attributes?
+3. Explain public, private, protected sections.
+
+### **Medium**
+
+4. What is inheritance in ABAP?
+5. What are constructors?
+6. What is polymorphism?
+7. What is an interface?
+
+### **Difficult**
+
+8. Difference between abstract class and interface.
+9. How does event handling work in OO ABAP?
+10. Explain casting (up-casting, down-casting).
+11. How OO ABAP is used in ALV?
+
+---
+
+# **7. SAP SCRIPT**
+
+### **Easy**
+
+1. What is SAP Script?
+2. Name the standard SAP script components.
+3. What is a window in script?
+
+### **Medium**
+
+4. Difference between main window and secondary window.
+5. What is the use of control commands (/ :)?
+6. How do you upload logos?
+7. How do you debug a SAP script?
+
+### **Difficult**
+
+8. How do you modify a standard SAP script?
+9. How do you handle multiple pages dynamically?
+10. How does SAP script integrate with print programs?
+
+---
+
+# **8. SMARTFORMS**
+
+### **Easy**
+
+1. What are Smartforms?
+2. What is a form interface?
+3. What is a window type?
+
+### **Medium**
+
+4. How do you create a table in Smartforms?
+5. How do you use global variables?
+6. How do you pass data to the form?
+
+### **Difficult**
+
+7. How do you handle dynamic table loops?
+8. How do you debug Smartforms?
+9. How do Smartforms differ from SAP Script internally?
+10. How do you implement conditional printing?
+
+---
+
+# **9. DEBUGGING (NORMAL & JDBG)**
+
+### **Easy**
+
+1. What is debugging?
+2. How do you set breakpoints?
+3. Difference between session and external debugging.
+
+### **Medium**
+
+4. What is watchpoint?
+5. How do you debug an update function module?
+6. How do you analyze field values in runtime?
+
+### **Difficult**
+
+7. How do you use JDBG?
+8. How do you debug an IDoc posting?
+9. How do you debug background jobs?
+10. How do you debug standard SAP code safely?
+
+---
+
+# **10. BADIs**
+
+### **Easy**
+
+1. What is a BADI?
+2. Difference between Classical and New BADIs?
+3. How do you find BADIs?
+
+### **Medium**
+
+4. How do you implement a BADI?
+5. What is the purpose of the filter value?
+6. Can we have multiple BADI implementations?
+
+### **Difficult**
+
+7. How do you enhance a BADI with multiple filters?
+8. What is the difference between Enhancement Point and BADI?
+9. How do you handle performance issues in BADIs?
+10. How do you transport BADI implementations?
+
+---
+
+# **11. LSMW**
+
+### **Easy**
+
+1. What is LSMW?
+2. What are the steps in LSMW?
+3. Difference between batch input and direct input?
+
+### **Medium**
+
+4. What is recording?
+5. What are source fields and structure mappings?
+6. How do you handle fixed values and translations?
+
+### **Difficult**
+
+7. How do you handle errors during conversion?
+8. How do you validate data before upload?
+9. Difference between BAPI method and batch input method.
+10. How do you migrate large data sets with LSMW?
+
+---
+
+# **12. BDC (Batch Data Communication)**
+
+### **Easy**
+
+1. What is BDC?
+2. Difference between session and call transaction?
+3. What is the BDCDATA structure?
+
+### **Medium**
+
+4. Explain BDC recording (SHDB).
+5. How do you handle errors in CALL TRANSACTION?
+6. Explain using MODE = A/N/E.
+
+### **Difficult**
+
+7. How do you handle table controls in BDC?
+8. How do you improve BDC performance?
+9. What is a no-display mode?
+10. Difference between BDC vs BAPI for data load.
+
+---
+
+# **13. IDocs**
+
+### **Easy**
+
+1. What is an IDoc?
+2. What is a basic type?
+3. What is a segment?
+
+### **Medium**
+
+4. What is partner profile (WE20)?
+5. Difference between inbound and outbound IDoc?
+6. What are status codes?
+
+### **Difficult**
+
+7. How do you debug inbound IDocs?
+8. What is an IDoc extension?
+9. Explain the IDoc workflow from sender to receiver.
+10. How do you reprocess failed IDocs?
+
+---
+
+# **14. CDS VIEWS**
+
+### **Easy**
+
+1. What is a CDS view?
+2. What is a view entity vs view?
+3. What are annotations?
+
+### **Medium**
+
+4. What is association?
+5. What is path expression?
+6. How do you enable CDS OData exposure?
+
+### **Difficult**
+
+7. Explain performance benefits of CDS over SE11 views.
+8. What is cascading association?
+9. What is analytical CDS?
+10. Explain table functions in CDS (AMDP CDS).
+11. How does authorization check work in CDS?
+
+---
+
+# **15. USEFUL CDS ANNOTATIONS**
+
+### **Common Annotations**
+
+1. `@AbapCatalog.sqlViewName`
+2. `@AccessControl.authorizationCheck`
+3. `@UI.lineItem`
+4. `@UI.selectionField`
+5. `@ObjectModel.readOnly`
+6. `@EndUserText.label`
+7. `@OData.publish: true`
+8. `@Consumption.filter`
+9. `@Analytics.dataCategory`
+10. `@ObjectModel.foreignKey.association`
+11. `@Semantics.amount/currency/unit`
+
+### **Interview Questions**
+
+12. Why do we use `@Analytics.dataCategory: #CUBE`?
+13. How do you define value helps (F4) using annotations?
+14. How do you restrict fields using authorization annotations?
+15. What is the difference between semantic annotations and UI annotations?
+
+---
+
+If you want, I can **convert this into a PDF, Word document, or cheat sheet**.

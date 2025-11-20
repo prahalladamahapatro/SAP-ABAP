@@ -1,0 +1,55 @@
+*&---------------------------------------------------------------------*
+*& Report ZSECLIST_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zseclist_u29.
+
+TABLES:vbak,vbap.
+
+* Declare structure for the tables
+TYPES: BEGIN OF ty_vbak,
+         vbeln TYPE vbeln,
+         erdat TYPE erdat,
+         ernam TYPE ernam,
+         erzet TYPE erzet,
+       END OF ty_vbak.
+
+TYPES: BEGIN OF ty_vbap,
+         vbeln TYPE vbeln,
+         posnr TYPE posnr, "Item number
+         matnr TYPE matnr,
+         posar TYPE posar, "Item type
+       END OF ty_vbap.
+
+*       decalre the internal table and work area
+DATA: lt_vbak TYPE TABLE OF ty_vbak,
+      wa_vbak TYPE ty_vbak,
+
+      lt_vbap TYPE TABLE OF ty_vbap,
+      wa_vbap TYPE ty_vbap.
+
+
+START-OF-SELECTION.
+
+  SELECT  vbeln
+          erdat
+          ernam
+          erzet FROM vbak INTO TABLE lt_vbak.
+
+  LOOP AT lt_vbak INTO wa_vbak.
+    WRITE:/ wa_vbak-vbeln, wa_vbak-ernam, wa_vbak-erdat, wa_vbak-erzet.
+    HIDE: wa_vbak-vbeln, wa_vbak-ernam, wa_vbak-erdat, wa_vbak-erzet.
+  ENDLOOP.
+
+AT LINE-SELECTION.
+
+  SELECT vbeln
+         posnr
+         matnr
+         posar FROM vbap INTO TABLE lt_vbap WHERE vbeln = wa_vbak-vbeln.
+
+  LOOP AT lt_vbap INTO wa_vbap.
+    WRITE:/ wa_vbap-vbeln, wa_vbap-matnr, wa_vbap-posnr, wa_vbap-posar.
+    CLEAR wa_vbap.
+  ENDLOOP.

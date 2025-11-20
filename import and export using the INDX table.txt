@@ -1,0 +1,40 @@
+*&---------------------------------------------------------------------*
+*& Report ZTEST1_1
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZTEST1_1.
+
+*IMPORT <varname> = <DATA> FROM DATABASE INDX(<RELID>) ID '<ID>'
+*      Where <RELID> IS 2-character area identifier.
+*      <ID> is an identifier string for your data cluster.
+*      <DATA> is an itab or complex data structure.
+
+*- DATA is stored under RELID(2-character identifier) and a SRTFD(Field name or identifier).
+*- The actual data is stored in the CLUSTD field in a clustered (serialized) form
+
+*DELETE FROM DATABASE INDX(<RELID>) ID 'ID'. " to remove the stored data from INDX table
+
+DATA: lt_imp_tab TYPE TABLE of vbak,
+      wa_tab type vbak.
+
+call FUNCTION 'ZTEST_IM' IN UPDATE TASK.
+COMMIT WORK AND WAIT.
+
+import myvalue = lt_imp_tab FROM DATABASE indx(zz) id 'ZZ_MEMORY'.
+*it is mandatory to write the variable before the data source, because it is the key name inside the exported data cluster
+*    AND lt_imp_tab is the actual ABAP variable.
+* If you omit this, it will work but you must use the same/exact variable name in both import and export statement(here lt_tab).
+
+IF lt_imp_tab IS NOT INITIAL.
+  WRITE:/ 'This table data is coming from the update function module'.
+  LOOP AT lt_imp_tab INTO wa_tab.
+    WRITE:/ wa_tab-vbeln, wa_tab-ernam, wa_tab-erdat.
+  ENDLOOP.
+
+  ELSE.
+    WRITE:/ 'Unable to fetch data'.
+ENDIF.
+
+* It is not mandatory to delete the data from INDX TABLE after the use.
+*DELETE FROM DATABASE indx(ZZ) id 'ZZ_MEMORY'.

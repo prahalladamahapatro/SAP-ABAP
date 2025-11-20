@@ -1,0 +1,30 @@
+*&---------------------------------------------------------------------*
+*& Report ZOOPALV6_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zoopalv6_u29.
+
+CLASS base_class DEFINITION INHERITING FROM zinherit_class_u29.
+  PUBLIC SECTION.
+  METHODS SPEAK1.
+ENDCLASS.
+
+CLASS base_class IMPLEMENTATION.
+  METHOD: SPEAK1.
+    WRITE:/ 'This is base class speaking'.
+*    super->speak( ).
+  ENDMETHOD.
+ENDCLASS.
+
+START-OF-SELECTION.
+DATA: lo_obj type REF TO base_class.
+CREATE OBJECT lo_obj.
+
+WRITE:/'calling the methods using the derived class object'.
+lo_obj->speak( ).
+lo_obj->speak1( ).
+
+  method SPEAK.
+    WRITE:/'This is the speak method'.
+  endmethod.

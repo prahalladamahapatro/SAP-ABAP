@@ -1,0 +1,52 @@
+*&---------------------------------------------------------------------*
+*& Report ZLOCK_OBJECT_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zlock_object_u29.
+
+TABLES: ZORDHPM_U29.
+PARAMETERS: p_ord TYPE zordnopmde. "to get the user input
+
+* call the "ENQUEUE_EZDEMOLOCK_U29" function, to request for the lock
+CALL FUNCTION 'ENQUEUE_EZDEMOLOCK_U29'
+  EXPORTING
+    mode_zordhpm_u29 = 'E' " S - Shared/read mode, E - Exclusive/Write mode, X - Exclusive without cumulation
+*    if you use Shared Mode(S), then other users can see the object and may got into the conflict. So it is recommended to use 'Exclusive mode(E)
+    mandt            = sy-mandt
+    ord_no           = p_ord
+    x_ord_no         = ' '
+    _scope           = '2'
+    _wait            = ' '
+    _collect         = ' '
+  EXCEPTIONS
+    foreign_lock     = 1
+    system_failure   = 2
+    OTHERS           = 3.
+IF sy-subrc <> 0.
+  MESSAGE e007(zmsg) WITH sy-uname. "E - Error msg, S - Success msg, W - Warning msg
+ELSE.
+  SELECT * FROM zordhpm_u29 WHERE ord_no = p_ord.
+  ENDSELECT.
+
+  WRITE: 'The details of the given order number is'.
+  WRITE:/ zordhpm_u29-ord_no, ZORDHPM_U29-created_by, ZORDHPM_U29-created_on, ZORDHPM_U29-age, ZORDHPM_U29-cust_id, zordhpm_u29-ord_dt, ZORDHPM_U29-tot_amt, ZORDHPM_U29-curr.
+*  like the above one, we can fetch the data from a table without using the internal table and work area
+
+*  once your work is done, then unlock the object by calling 'dequeue' function module
+  CALL FUNCTION 'DEQUEUE_EZDEMOLOCK_U29'
+   EXPORTING
+     MODE_ZORDHPM_U29       = 'E'
+     MANDT                  = SY-MANDT
+     ORD_NO                 = p_ord
+     X_ORD_NO               = ' '
+     _SCOPE                 = '3'
+     _SYNCHRON              = ' '
+     _COLLECT               = ' '
+            .
+
+ENDIF.
+
+* anything that starts with 'SY'/'SYST', then it is a system variable.
+"sy-subrc(rc - return code), means we check whether the above statements are successfully executed or not.
+* if yes, then sy-subrc value is 0. Else it is other than 0.

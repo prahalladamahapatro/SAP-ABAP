@@ -1,0 +1,37 @@
+*&---------------------------------------------------------------------*
+*& Report ZTEZTPM5
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zteztpm5.
+
+TABLES: zbooks1.
+
+DATA: lv_var  TYPE i VALUE 100,
+      wa_book TYPE zbooks1,
+      it_book TYPE TABLE OF zbooks1.
+
+*** Define the FIELD-SYMBOL
+FIELD-SYMBOLS <fs> TYPE zbooks1.
+
+**** Assign value to the field symbol
+**<fs> = 20.  "Incorrect way of assinging the value to the field-symbol (You will get a dump after execution)
+**ASSIGN 20 to <fs>. "Correct way to assign the value to the field-symbol (assign the value directly to the field symbol)
+*ASSIGN lv_var TO <fs>. "assign value to the field-symbol using variable
+*
+*IF <fs> is ASSIGNED.
+*  WRITE: 'Value is assigned to the FS', <fs>.
+*ENDIF.
+
+
+SELECT * FROM zbooks1 INTO TABLE it_book.
+
+IF it_book IS NOT INITIAL.
+*  Assigning the table value to the field-symbol
+  LOOP AT it_book ASSIGNING <fs>.
+*    Check whether the value is assigned or not
+    IF <fs> IS ASSIGNED.
+      WRITE: / <fs>-bid, <fs>-bname, <fs>-author, <fs>-price.
+    ENDIF.
+  ENDLOOP.
+ENDIF.

@@ -1,0 +1,29 @@
+*&---------------------------------------------------------------------*
+*& Report ZOOPALV5_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zoopalv5_u29.
+
+CLASS lo_clas DEFINITION.
+  PUBLIC SECTION.
+    METHODS: constructor, display.
+ENDCLASS.
+
+CLASS lo_clas IMPLEMENTATION.
+  METHOD constructor.
+    WRITE:/ 'This is called when we create an object'.
+  ENDMETHOD.
+
+  METHOD display.
+    WRITE:/ 'This method will be called when we call the method'.
+  ENDMETHOD.
+ENDCLASS.
+
+START-OF-SELECTION.
+
+DATA: lv_obj TYPE REF TO lo_clas.
+CREATE OBJECT lv_obj.
+
+* obj_name -> method_name( ). "Between paranthesis we should give a space, otherwise you will get an error
+lv_obj->display( ).

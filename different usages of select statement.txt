@@ -1,0 +1,41 @@
+*&---------------------------------------------------------------------*
+*& Report ZINTTBLONE_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZINTTBLONE_U29.
+TABLES vbak.
+
+DATA: lt_vbak TYPE TABLE of vbak,
+      wa_vbak TYPE vbak.
+
+*method - 1
+WRITE /'to select only one row from the table METHOD - 1'.
+SELECT SINGLE * FROM vbak INTO wa_vbak.
+  WRITE:/ wa_vbak-vbeln, wa_vbak-ernam, wa_vbak-erdat,wa_vbak-erzet,wa_vbak-bstdk,wa_vbak-submi.
+CLEAR wa_vbak.
+
+*method - 2
+WRITE /'to select only one row from the table METHOD - 2'.
+SELECT * FROM vbak INTO TABLE lt_vbak UP TO 1 ROWS.
+  LOOP AT lt_vbak INTO wa_vbak.
+  WRITE:/ wa_vbak-vbeln, wa_vbak-ernam, wa_vbak-erdat,wa_vbak-erzet,wa_vbak-bstdk,wa_vbak-submi.
+  ENDLOOP.
+CLEAR wa_vbak.
+
+*method - 3
+WRITE /'to select only one row from the table METHOD - 3'.
+SELECT * FROM vbak INTO wa_vbak.
+  WRITE:/ wa_vbak-vbeln, wa_vbak-ernam, wa_vbak-erdat,wa_vbak-erzet,wa_vbak-bstdk,wa_vbak-submi.
+  CLEAR wa_vbak.
+  ENDSELECT.
+*  The above select is used to dispaly all the records where as
+*  The below write is used to display a single record from the table based on some condition(default is last record as select is a iterative method)
+*  WRITE:/ wa_vbak-vbeln, wa_vbak-ernam, wa_vbak-erdat,wa_vbak-erzet,wa_vbak-bstdk,wa_vbak-submi.
+
+*  Method - 4
+  SELECT DISTINCT ernam FROM vbak INTO CORRESPONDING FIELDS OF wa_vbak.
+    WRITE / wa_vbak-ernam.
+*    WRITE:/ wa_vbak-vbeln, wa_vbak-ernam, wa_vbak-erdat,wa_vbak-erzet,wa_vbak-bstdk,wa_vbak-submi.
+    CLEAR wa_vbak.
+    ENDSELECT.

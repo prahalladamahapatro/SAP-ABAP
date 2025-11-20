@@ -1,0 +1,79 @@
+*&---------------------------------------------------------------------*
+*& Report ZTEZTPM6
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zteztpm6.
+
+TABLES: zbooks1.
+
+PARAMETERS: p_bid TYPE zbid_dl.
+
+*structure for the field used for input help
+TYPES: BEGIN OF ty_bid,
+         book_id TYPE zbid_dl,
+       END OF ty_bid.
+
+*Internal table to store the values for the value-help
+DATA: it_bid TYPE TABLE OF ty_bid,
+      wa_bid TYPE ty_bid.
+
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_bid.
+
+  SELECT bid FROM zbooks1 INTO TABLE it_bid.  "fetch the data from the db table and store it into the internal table for F4-HELP
+
+  IF it_bid IS NOT INITIAL.
+    CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'  "standard FM for F4-HELP
+      EXPORTING
+*       DDIC_STRUCTURE         = ' '
+        retfield    = 'BID'      "Name of return field in FIELD_TAB (Database Table)
+*       PVALKEY     = ' '
+        dynpprog    = sy-repid    "Current Program Name Parameter is optional, but highly recommended
+        dynpnr      = sy-dynnr    "Screen Number
+        dynprofield = 'BOOK_ID'   "Name of screen field for value return (selected value will be stored in this field, any name)
+*       STEPL       = 0
+*       WINDOW_TITLE           =
+*       VALUE       = ' '
+        value_org   = 'S'         "Value return: C: cell by cell, S: structured (as we are using the workarea/internal table to store the data, so pass 'S')
+*       MULTIPLE_CHOICE        = ' '
+*       DISPLAY     = ' '
+*       CALLBACK_PROGRAM       = ' '
+*       CALLBACK_FORM          = ' '
+*       CALLBACK_METHOD        =
+*       MARK_TAB    =
+*       IMPORTING
+*       USER_RESET  =
+      TABLES
+        value_tab   = it_bid     "pass the table of values
+*       FIELD_TAB   =
+*       RETURN_TAB  =
+*       DYNPFLD_MAPPING        =
+*       EXCEPTIONS
+*       PARAMETER_ERROR        = 1
+*       NO_VALUES_FOUND        = 2
+*       OTHERS      = 3
+      .
+    IF sy-subrc <> 0.
+      MESSAGE 'Some EXECPTION has been occured' TYPE 'I'.
+    ENDIF.
+
+  ENDIF.
+
+START-OF-SELECTION.
+
+SELECT * FROM zbooks1 INTO TABLE @data(lt_tab) WHERE bid = @p_bid.
+
+  IF lt_tab is NOT INITIAL.
+
+  WRITE: 'Your BOOK ID is', p_bid,
+  / 'The details of the Book is: '.
+
+    LOOP AT lt_tab INTO DATA(wa_tab).
+      WRITE: 'The BOOK ID is ', wa_tab-bid,
+      / 'The BOOK NAME is ', wa_tab-bname,
+      / 'Author of the book is', wa_tab-author,
+      / 'Price of the BOOK is', wa_tab-price.
+
+      CLEAR wa_tab.
+    ENDLOOP.
+  ENDIF.

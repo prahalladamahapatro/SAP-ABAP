@@ -1,0 +1,35 @@
+*&---------------------------------------------------------------------*
+*& Report ZWORKFLOW_TRIGGER
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zworkflow_trigger.
+
+DATA: subrc TYPE sy-subrc.
+
+CALL FUNCTION 'SAP_WAPI_CREATE_EVENT'
+  EXPORTING
+    object_type = 'BUS2012'
+    object_key  = '00000002247'
+    event       = 'CREATED'
+*   COMMIT_WORK = 'X'
+*   EVENT_LANGUAGE          = SY-LANGU
+*   LANGUAGE    = SY-LANGU
+*   USER        = SY-UNAME
+*   IFS_XML_CONTAINER       =
+  IMPORTING
+    return_code = subrc
+*   EVENT_ID    =
+* TABLES
+*   INPUT_CONTAINER         =
+*   MESSAGE_LINES           =
+*   MESSAGE_STRUCT          =
+  .
+
+IF subrc IS INITIAL.
+  WRITE: 'Workflow Successfully triggered'.
+
+ELSE.
+  WRITE: 'Workflow Successfully not triggered'.
+
+ENDIF.

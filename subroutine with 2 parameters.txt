@@ -1,0 +1,133 @@
+*&---------------------------------------------------------------------*
+*& Report ZSUBRTN2_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsubrtn2_u29.
+
+TABLES: vbak,vbap.
+
+* Declare structure for the tables
+TYPES: BEGIN OF ty_vbak,
+         vbeln TYPE vbeln,
+         ernam TYPE ernam,
+         erdat TYPE erdat,
+         erzet TYPE erzet,
+       END OF ty_vbak.
+
+TYPES: BEGIN OF ty_vbap,
+         vbeln TYPE vbeln,
+         posnr TYPE posnr,
+         matnr TYPE matnr,
+         posar TYPE posar, "Item type
+       END OF ty_vbap.
+
+TYPES: BEGIN OF ty_final,
+         vbeln TYPE vbeln,
+         erdat TYPE erdat,
+         ernam TYPE ernam,
+         erzet TYPE erzet,
+         posnr TYPE posnr,
+         matnr TYPE matnr,
+         posar TYPE posar,
+       END OF ty_final.
+
+*declaration of internal table and work area
+DATA: lt_vbak  TYPE TABLE OF ty_vbak,
+      wa_vbak  TYPE ty_vbak,
+
+      lt_vbap  TYPE TABLE OF ty_vbap,
+      wa_vbap  TYPE ty_vbap,
+
+      lt_final TYPE TABLE OF ty_final,
+      wa_final TYPE ty_final.
+
+PARAMETERS p_val TYPE vbeln.
+
+* to fetch data from vbak table with the help of perform statement
+PERFORM get_vbak USING p_val CHANGING lt_vbak.
+
+* to fetch data from vbap table with the help of perform statement
+PERFORM get_vbap USING lt_vbak CHANGING lt_vbap.
+
+* to fetch data from final table with the help of perform statement
+PERFORM get_final USING lt_vbak lt_vbap CHANGING lt_final.
+
+LOOP AT lt_final INTO wa_final.
+  WRITE:/ wa_final-vbeln, wa_final-ernam, wa_final-erdat, wa_final-matnr, wa_final-posnr.
+  clear wa_final.
+ENDLOOP.
+
+
+INCLUDE zbrtn2_u29_get_vbakf01.
+
+
+
+*----------------------------------------------------------------------*
+***INCLUDE ZBRTN2_U29_GET_VBAKF01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form get_vbak
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> P_VAL
+*&      <-- LT_VBAK
+*&---------------------------------------------------------------------*
+FORM get_vbak  USING    p_p_val TYPE vbeln
+               CHANGING p_lt_vbak TYPE zltt_vbak1.
+  SELECT vbeln
+    ernam
+    erdat
+    erzet FROM vbak INTO TABLE p_lt_vbak WHERE vbeln = p_p_val.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form get_vbap
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> LT_VBAK
+*&      <-- LT_VBAP
+*&---------------------------------------------------------------------*
+FORM get_vbap  USING    p_lt_vbak TYPE zltt_vbak1
+               CHANGING p_lt_vbap TYPE zltt_vbap1.
+
+  IF p_lt_vbak[] IS NOT INITIAL.
+    SELECT vbeln
+      posnr
+      matnr
+      posar FROM vbap INTO TABLE p_lt_vbap
+      FOR ALL ENTRIES IN p_lt_vbak WHERE vbeln = p_lt_vbak-vbeln.
+  ENDIF.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form get_final
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> LT_VBAK
+*&      --> LT_VBAP
+*&      <-- LT_FINAL
+*&---------------------------------------------------------------------*
+FORM get_final  USING    p_lt_vbak TYPE zltt_vbak1
+                         p_lt_vbap TYPE zltt_vbap1
+                CHANGING p_lt_final TYPE zltt_final1.
+
+  LOOP AT p_lt_vbak INTO wa_vbak.
+    wa_final-vbeln = wa_vbak-vbeln.
+    wa_final-erdat = wa_vbak-erdat.
+    wa_final-ernam = wa_vbak-ernam.
+    wa_final-erzet = wa_vbak-erzet.
+
+    LOOP AT p_lt_vbap INTO wa_vbap WHERE vbeln = wa_vbak-vbeln.
+      wa_final-posnr = wa_vbap-posnr.
+      wa_final-matnr = wa_vbap-matnr.
+      wa_final-posar = wa_vbap-posar.
+    ENDLOOP.
+
+    APPEND wa_final TO p_lt_final.
+    CLEAR wa_final.
+  ENDLOOP.
+
+ENDFORM.

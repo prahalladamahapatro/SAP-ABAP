@@ -1,0 +1,414 @@
+*&---------------------------------------------------------------------*
+*& Report ZINTALVOOP1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zintalvoop1_u29.
+
+TABLES: vbak, vbap.
+
+INITIALIZATION.
+  SELECT-OPTIONS: so_vbeln FOR vbak-vbeln.
+
+* declaration of structures
+  TYPES: BEGIN OF ty_vbak,
+           vbeln TYPE vbeln_va,
+           erdat TYPE erdat,
+           ernam TYPE ernam,
+           erzet TYPE erzet,
+         END OF ty_vbak.
+
+  TYPES: BEGIN OF ty_vbap,
+           vbeln TYPE vbeln_va,
+           matnr TYPE matnr,
+           posnr TYPE posnr,
+           posar TYPE posar,
+         END OF ty_vbap.
+
+  DATA: lt_vbak          TYPE TABLE OF ty_vbak,
+        wa_vbak          TYPE ty_vbak,
+
+        lt_vbap          TYPE TABLE OF ty_vbap,
+        wa_vbap          TYPE ty_vbap,
+        lv_mat           TYPE matnr,
+
+        lt_fieldcat_vbak TYPE lvc_t_fcat,
+        wa_fieldcat_vbak TYPE lvc_s_fcat,
+
+        lt_fieldcat_vbap TYPE lvc_t_fcat,
+        wa_fieldcat_vbap TYPE lvc_s_fcat,
+
+        lt_rows          TYPE lvc_t_row,
+        wa_rows          TYPE lvc_s_row,
+
+        lt_cell          TYPE lvc_t_cell,
+        wa_cell          TYPE lvc_s_cell,
+
+        selfield         TYPE slis_selfield.
+
+  DATA: row_ind TYPE i.
+
+  DATA: lo_grid1 TYPE REF TO cl_gui_alv_grid.
+  DATA: lo_custom1 TYPE REF TO cl_gui_custom_container.
+
+  DATA: lo_grid2 TYPE REF TO cl_gui_alv_grid.
+  DATA: lo_custom2 TYPE REF TO cl_gui_custom_container.
+
+*  DATA: lv_row TYPE lvc_s_roid,
+*        lv_col TYPE lvc_s_coid.
+
+CLASS event_cls DEFINITION.
+  PUBLIC SECTION.
+    METHODS event_hndl FOR EVENT double_click OF cl_gui_alv_grid.
+ENDCLASS.
+
+CLASS event_cls IMPLEMENTATION.
+  METHOD event_hndl.
+
+    CALL METHOD lo_grid1->get_selected_rows
+      IMPORTING
+        et_index_rows = lt_rows
+*       et_row_no     =
+      .
+    READ TABLE lt_rows INTO wa_rows INDEX 1.
+    IF sy-subrc = 0.
+      READ TABLE lt_vbak INTO wa_vbak INDEX wa_rows-index.
+      IF sy-subrc = 0.
+        SELECT * FROM vbap INTO CORRESPONDING FIELDS OF TABLE lt_vbap
+          WHERE vbeln = wa_vbak-vbeln.
+
+        CALL METHOD lo_grid2->set_table_for_first_display
+          EXPORTING
+*           i_buffer_active               =
+*           i_bypassing_buffer            =
+*           i_consistency_check           =
+            i_structure_name              = 'TY_VBAP'
+*           is_variant                    =
+*           i_save                        =
+*           i_default                     = 'X'
+*           is_layout                     =
+*           is_print                      =
+*           it_special_groups             =
+*           it_toolbar_excluding          =
+*           it_hyperlink                  =
+*           it_alv_graphics               =
+*           it_except_qinfo               =
+*           ir_salv_adapter               =
+          CHANGING
+            it_outtab                     = lt_vbap
+            it_fieldcatalog               = lt_fieldcat_vbap
+*           it_sort                       =
+*           it_filter                     =
+          EXCEPTIONS
+            invalid_parameter_combination = 1
+            program_error                 = 2
+            too_many_lines                = 3
+            OTHERS                        = 4.
+        IF sy-subrc <> 0.
+* Implement suitable error handling here
+        ENDIF.
+      ENDIF.
+    ENDIF.
+    CLEAR wa_rows.
+    CLEAR lt_rows.
+  ENDMETHOD.
+ENDCLASS.
+
+CLASS hot_cls DEFINITION.
+  PUBLIC SECTION.
+    METHODS hot_event FOR EVENT double_click OF cl_gui_alv_grid.
+*      IMPORTING lv_row lv_col.
+*      IMPORTING row_ind type i
+*                column
+*                row_no.
+ENDCLASS.
+
+CLASS hot_cls IMPLEMENTATION.
+  METHOD hot_event.
+    CALL METHOD lo_grid2->get_selected_rows
+      IMPORTING
+        et_index_rows = lt_rows
+*       et_row_no     =
+      .
+    READ TABLE lt_rows INTO wa_rows INDEX 1.
+    IF sy-subrc = 0.
+      READ TABLE lt_vbap INTO wa_vbap INDEX wa_rows-index.
+      IF sy-subrc = 0.
+        lv_mat = wa_vbap-matnr.
+        SET PARAMETER ID 'MAT' FIELD lv_mat.
+        CALL TRANSACTION 'MM03'.
+      ENDIF.
+    ENDIF.
+  ENDMETHOD.
+ENDCLASS.
+*CLASS hot_cls IMPLEMENTATION.
+*  METHOD hot_event.
+*    row_ind = row_no-row_id.
+*    READ TABLE lt_vbap INTO wa_vbap INDEX row_ind.
+*    IF sy-subrc = 0.
+*      DATA(lv_value) = wa_vbap-matnr.
+*
+*      SET PARAMETER ID 'MAT' FIELD data(lv_value).
+*      CALL TRANSACTION 'MM03'.
+*    ENDIF.
+*  ENDMETHOD.
+*ENDCLASS.
+
+*CLASS usr_cls DEFINITION.
+*  PUBLIC SECTION.
+*    METHODS usr_cmd FOR EVENT user_command OF cl_gui_alv_grid.
+**      IMPORT ucomm.
+*ENDCLASS.
+*
+*CLASS usr_cls IMPLEMENTATION.
+*  METHOD usr_cmd.
+*    GET CURSOR FIELD lv_col LINE lv_row.
+*    IF sy-subrc = 0.
+*      set PARAMETER ID 'MAT' FIELD lv_col.
+*      CALL TRANSACTION 'MM03'.
+*    ENDIF.
+**CALL METHOD lo_grid2->get_name
+**  RECEIVING
+**    name   =
+**    .
+*
+*  ENDMETHOD.
+*ENDCLASS.
+
+START-OF-SELECTION.
+
+**********************************************************************
+* FOR 1ST ALV
+**********************************************************************
+  SELECT * FROM vbak INTO CORRESPONDING FIELDS OF TABLE lt_vbak
+  WHERE vbeln IN so_vbeln.
+
+  wa_fieldcat_vbak-col_pos = 1.
+  wa_fieldcat_vbak-fieldname = 'VBELN'.
+  wa_fieldcat_vbak-tabname = 'LT_VBAK'.
+  wa_fieldcat_vbak-scrtext_l = 'Sales Document number'.
+  wa_fieldcat_vbak-key = 'X'.
+  wa_fieldcat_vbak-hotspot = 'X'.
+  APPEND wa_fieldcat_vbak TO lt_fieldcat_vbak.
+  CLEAR wa_fieldcat_vbak.
+
+  wa_fieldcat_vbak-col_pos = 2.
+  wa_fieldcat_vbak-fieldname = 'ERDAT'.
+  wa_fieldcat_vbak-tabname = 'LT_VBAK'.
+  wa_fieldcat_vbak-scrtext_l = 'Date created'.
+  APPEND wa_fieldcat_vbak TO lt_fieldcat_vbak.
+  CLEAR wa_fieldcat_vbak.
+
+  wa_fieldcat_vbak-col_pos = 3.
+  wa_fieldcat_vbak-fieldname = 'ERNAM'.
+  wa_fieldcat_vbak-tabname = 'LT_VBAK'.
+  wa_fieldcat_vbak-scrtext_l = 'Created BY'.
+  APPEND wa_fieldcat_vbak TO lt_fieldcat_vbak.
+  CLEAR wa_fieldcat_vbak.
+
+  wa_fieldcat_vbak-col_pos = 4.
+  wa_fieldcat_vbak-fieldname = 'ERzet'.
+  wa_fieldcat_vbak-tabname = 'LT_VBAK'.
+  wa_fieldcat_vbak-scrtext_l = 'Creation time'.
+  APPEND wa_fieldcat_vbak TO lt_fieldcat_vbak.
+  CLEAR wa_fieldcat_vbak.
+
+  CREATE OBJECT lo_custom1
+    EXPORTING
+*     parent                      =
+      container_name              = 'CONT1'
+*     style                       =
+*     lifetime                    = lifetime_default
+*     repid                       = SY-repid
+*     dynnr                       =
+*     no_autodef_progid_dynnr     =
+    EXCEPTIONS
+      cntl_error                  = 1
+      cntl_system_error           = 2
+      create_error                = 3
+      lifetime_error              = 4
+      lifetime_dynpro_dynpro_link = 5
+      OTHERS                      = 6.
+  IF sy-subrc <> 0.
+* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+  CREATE OBJECT lo_grid1
+    EXPORTING
+*     i_shellstyle      = 0
+*     i_lifetime        =
+      i_parent          = lo_custom1
+*     i_appl_events     = SPACE
+*     i_parentdbg       =
+*     i_applogparent    =
+*     i_graphicsparent  =
+*     i_name            =
+*     i_fcat_complete   = SPACE
+*     o_previous_sral_handler =
+    EXCEPTIONS
+      error_cntl_create = 1
+      error_cntl_init   = 2
+      error_cntl_link   = 3
+      error_dp_create   = 4
+      OTHERS            = 5.
+  IF sy-subrc <> 0.
+* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+  CALL METHOD lo_grid1->set_table_for_first_display
+    EXPORTING
+*     i_buffer_active               =
+*     i_bypassing_buffer            =
+*     i_consistency_check           =
+      i_structure_name              = 'TY_VBAK'
+*     is_variant                    =
+*     i_save                        =
+*     i_default                     = 'X'
+*     is_layout                     =
+*     is_print                      =
+*     it_special_groups             =
+*     it_toolbar_excluding          =
+*     it_hyperlink                  =
+*     it_alv_graphics               =
+*     it_except_qinfo               =
+*     ir_salv_adapter               =
+    CHANGING
+      it_outtab                     = lt_vbak
+      it_fieldcatalog               = lt_fieldcat_vbak
+*     it_sort                       =
+*     it_filter                     =
+    EXCEPTIONS
+      invalid_parameter_combination = 1
+      program_error                 = 2
+      too_many_lines                = 3
+      OTHERS                        = 4.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+
+**********************************************************************
+* FOR 2ND ALV
+**********************************************************************
+*  SELECT * FROM vbak INTO CORRESPONDING FIELDS OF TABLE lt_vbak
+*WHERE vbeln IN so_vbeln.
+
+  wa_fieldcat_vbap-col_pos = 1.
+  wa_fieldcat_vbap-fieldname = 'VBELN'.
+  wa_fieldcat_vbap-tabname = 'LT_VBAP'.
+  wa_fieldcat_vbap-scrtext_l = 'Sales Document number'.
+  wa_fieldcat_vbap-key = 'X'.
+  APPEND wa_fieldcat_vbap TO lt_fieldcat_vbap.
+  CLEAR wa_fieldcat_vbap.
+
+  wa_fieldcat_vbap-col_pos = 2.
+  wa_fieldcat_vbap-fieldname = 'MATNR'.
+  wa_fieldcat_vbap-tabname = 'LT_VBAP'.
+  wa_fieldcat_vbap-scrtext_l = 'MATERIAL NUMBER'.
+  wa_fieldcat_vbap-hotspot = 'X'.
+  APPEND wa_fieldcat_vbap TO lt_fieldcat_vbap.
+  CLEAR wa_fieldcat_vbap.
+
+  wa_fieldcat_vbap-col_pos = 3.
+  wa_fieldcat_vbap-fieldname = 'POSNR'.
+  wa_fieldcat_vbap-tabname = 'LT_VBAP'.
+  wa_fieldcat_vbap-scrtext_l = 'ITEM NUMEBR'.
+  APPEND wa_fieldcat_vbap TO lt_fieldcat_vbap.
+  CLEAR wa_fieldcat_vbap.
+
+  wa_fieldcat_vbap-col_pos = 4.
+  wa_fieldcat_vbap-fieldname = 'POSAR'.
+  wa_fieldcat_vbap-tabname = 'LT_VBAP'.
+  wa_fieldcat_vbap-scrtext_l = 'ITEM TYPE'.
+  APPEND wa_fieldcat_vbap TO lt_fieldcat_vbap.
+  CLEAR wa_fieldcat_vbap.
+
+  CREATE OBJECT lo_custom2
+    EXPORTING
+*     parent                      =
+      container_name              = 'CONT2'
+*     style                       =
+*     lifetime                    = lifetime_default
+*     repid                       = SY-repid
+*     dynnr                       =
+*     no_autodef_progid_dynnr     =
+    EXCEPTIONS
+      cntl_error                  = 1
+      cntl_system_error           = 2
+      create_error                = 3
+      lifetime_error              = 4
+      lifetime_dynpro_dynpro_link = 5
+      OTHERS                      = 6.
+  IF sy-subrc <> 0.
+* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+  CREATE OBJECT lo_grid2
+    EXPORTING
+*     i_shellstyle      = 0
+*     i_lifetime        =
+      i_parent          = lo_custom2
+*     i_appl_events     = SPACE
+*     i_parentdbg       =
+*     i_applogparent    =
+*     i_graphicsparent  =
+*     i_name            =
+*     i_fcat_complete   = SPACE
+*     o_previous_sral_handler =
+    EXCEPTIONS
+      error_cntl_create = 1
+      error_cntl_init   = 2
+      error_cntl_link   = 3
+      error_dp_create   = 4
+      OTHERS            = 5.
+  IF sy-subrc <> 0.
+* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+  DATA: lo_obj TYPE REF TO event_cls.
+  CREATE OBJECT lo_obj.
+  SET HANDLER lo_obj->event_hndl FOR lo_grid1.
+
+  DATA: lo_obj1 TYPE REF TO hot_cls.
+  CREATE OBJECT lo_obj1.
+  SET HANDLER lo_obj1->hot_event FOR lo_grid2.
+
+  CALL SCREEN '0017'.
+
+  INCLUDE zintalvoop1_u29_status_0017o01.
+
+  INCLUDE zintalvoop1_u29_user_commani01.
+
+
+*----------------------------------------------------------------------*
+***INCLUDE ZINTALVOOP1_U29_STATUS_0017O01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Module STATUS_0017 OUTPUT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+MODULE status_0017 OUTPUT.
+  SET PF-STATUS 'OWN_BTN'.
+  SET TITLEBAR 'TIT'.
+ENDMODULE.
+
+
+*----------------------------------------------------------------------*
+***INCLUDE ZINTALVOOP1_U29_USER_COMMANI01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0017  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0017 INPUT.
+  IF sy-ucomm = 'BACK'.
+    LEAVE TO SCREEN 0.
+*    LEAVE SCREEN.
+  ENDIF.
+ENDMODULE.

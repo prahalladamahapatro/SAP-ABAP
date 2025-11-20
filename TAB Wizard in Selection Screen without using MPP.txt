@@ -1,0 +1,178 @@
+*&---------------------------------------------------------------------*
+*& Report ZTEZTPM2
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zteztpm2.
+
+DATA: lt_exclude TYPE TABLE OF rsexfcode, " Table structure for SET PF-STATUS
+      ls_exclude TYPE rsexfcode,
+
+      total      TYPE i.
+
+SELECTION-SCREEN BEGIN OF TABBED BLOCK tb1 FOR 15 LINES.  "allocate the size for the tabbed block
+  SELECTION-SCREEN TAB (20) t1 USER-COMMAND one. " Create Tabs in the Tabbed Block
+  SELECTION-SCREEN TAB (20) t2 USER-COMMAND two. "
+  SELECTION-SCREEN TAB (20) t3 USER-COMMAND thr.
+SELECTION-SCREEN END OF BLOCK tb1.
+
+***  Mention the Screen Number for each tabs (Here, every screen will be displayed as Subscreen).
+* For the First TAB with screen no 1001
+SELECTION-SCREEN BEGIN OF SCREEN 1001 AS SUBSCREEN. "for TAB1
+  PARAMETERS: name1 TYPE string,
+              name2 TYPE string,
+              name3 TYPE string.
+  SELECTION-SCREEN SKIP 3.
+  PARAMETERS: ful_nam TYPE string DEFAULT 'FULL NAME WILL DISPLAY' MODIF ID dis.
+  SELECTION-SCREEN SKIP 2.
+*  ***** PUSHBUTTON in the selection-screen
+  SELECTION-SCREEN PUSHBUTTON 6(10) pb1 USER-COMMAND full.
+  SELECTION-SCREEN PUSHBUTTON 20(10) pb2 USER-COMMAND clear.
+  SELECTION-SCREEN PUSHBUTTON 34(10) pb3 USER-COMMAND exit.
+SELECTION-SCREEN END OF SCREEN 1001.
+
+
+* For the First TAB with screen no 1002
+SELECTION-SCREEN BEGIN OF SCREEN 1002 AS SUBSCREEN. " for TAB2
+SELECTION-SCREEN END OF SCREEN 1002.
+
+
+* For the First TAB with screen no 1003
+SELECTION-SCREEN BEGIN OF SCREEN 1003 AS SUBSCREEN. " for TAB3
+
+  SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE tit1.
+    PARAMETERS: p1 TYPE i OBLIGATORY DEFAULT 400,
+                p2 TYPE i DEFAULT 200 OBLIGATORY.
+  SELECTION-SCREEN END OF BLOCK b1.
+
+* Display the checkboxes in single line
+  SELECTION-SCREEN BEGIN OF BLOCK b2 WITH FRAME TITLE tit2.
+    SELECTION-SCREEN BEGIN OF LINE.
+      SELECTION-SCREEN POSITION 3.
+      PARAMETERS: p_chk1 AS CHECKBOX. "Checkbox for SUM
+      SELECTION-SCREEN COMMENT 5(10) TEXT-001 FOR FIELD p_chk1. "using selection text
+
+      PARAMETERS: p_chk2 AS CHECKBOX. "Checkbox for SUBTRACTION
+      SELECTION-SCREEN COMMENT 18(10) TEXT-002 FOR FIELD p_chk2.
+
+      PARAMETERS: p_chk3 AS CHECKBOX. "Checkbox to multiply
+      SELECTION-SCREEN COMMENT 31(10) TEXT-003 FOR FIELD p_chk3.
+
+      PARAMETERS: p_chk4 AS CHECKBOX. "Checkbox to divide
+      SELECTION-SCREEN COMMENT 44(10) TEXT-004 FOR FIELD p_chk4.
+
+      PARAMETERS: p_chk5 AS CHECKBOX. "Checkbox to perform other operation
+      SELECTION-SCREEN COMMENT 57(10) TEXT-005 FOR FIELD p_chk5.
+    SELECTION-SCREEN END OF LINE.
+  SELECTION-SCREEN END OF BLOCK b2.
+
+SELECTION-SCREEN END OF SCREEN 1003.
+
+
+INITIALIZATION.
+*  Custom Pushbuttons in SELECTION-SCREEN
+  pb1 = 'FULL NAME'.
+  pb2 = 'CLEAR'.
+  pb3 = 'EXIT'.
+
+* Here, we can set the default tab out of all those tabs
+  tb1-activetab = 'TWO'.
+  tb1-dynnr = 1002.
+  tb1-prog = sy-repid.
+
+  t1 = 'PERSONAL DETAILS'.
+  t2 = 'EDUCATIONAL DETAILS'.
+  t3 = 'ADDRESS DETAILS'.
+
+  tit1 = 'ENTER THE VALUES'.
+  tit2 = 'Choose the Appropriate Operations'.
+
+*  ls_exclude-fcode = 'ONLI'.  "Remove the Execute button from SELECTION-SCREEN
+*  APPEND ls_exclude TO lt_exclude.
+
+  ls_exclude-fcode = 'SJOB'.  " Remove Execute in Background (Present in PROGRAM menu in MENUBAR)
+  APPEND ls_exclude TO lt_exclude.
+
+  ls_exclude-fcode = 'PRIN'.  " Remove Execute and Print (Present in PROGRAM menu in MENUBAR or PRINT icon in application toolbar)
+  APPEND ls_exclude TO lt_exclude.
+
+  ls_exclude-fcode = 'SPOS'.  " Remove Save as Variant
+  APPEND ls_exclude TO lt_exclude.
+
+*  ls_exclude-fcode = 'E'.   " Disable the BACK functionalities
+*  APPEND ls_exclude to lt_exclude.
+
+
+AT SELECTION-SCREEN OUTPUT.
+***TO disable the input for any fields, we have to make the SCREEN-INPUT = 0.
+  LOOP AT SCREEN.
+    IF screen-group1 = 'DIS'.
+      screen-input = 0. " to disable the input for the parameter
+      MODIFY SCREEN.
+    ENDIF.
+  ENDLOOP.
+
+  CALL FUNCTION 'RS_SET_SELSCREEN_STATUS'
+    EXPORTING
+      p_status  = '%_00'  " It is the standard PF-STATUS for selection screens
+      p_program = 'RSSYSTDB'   " It is the standard program containing the GUI status
+    TABLES
+      p_exclude = lt_exclude.  " Table for SET PF-STATUS with required buttons
+
+
+AT SELECTION-SCREEN.
+  CASE sy-dynnr.
+    WHEN 1000.  "In the standard selection screen
+      CASE sy-ucomm.
+**        For the FIRST tab, whatever usercommands are used, will be written here
+        WHEN 'ONE'.
+          tb1-dynnr = 1001.
+        WHEN 'FULL'.  "when FULL NAME button is clicked
+          CONCATENATE name1 name2 name3 INTO ful_nam SEPARATED BY ' '.
+          MESSAGE | Your full name is { ful_nam } | TYPE 'I'. "always give space before and after variable
+        WHEN 'CLEAR'. "when CLEAR button is clicked
+          CLEAR: name1, name2, name3, ful_nam.
+          ful_nam = 'FULL NAME WILL DISPLAY'. " to set the parameter with original text, after clearing.
+        WHEN 'EXIT'.  "when EXIT button is clicked
+          LEAVE PROGRAM.
+
+**        For the SECOND tab, whatever usercommands are used, will be written here
+        WHEN 'TWO'.
+          tb1-dynnr = 1002.
+
+**        For the THIRD tab, whatever usercommands are used, will be written here
+        WHEN 'THR'.
+          tb1-dynnr = 1003.
+
+        WHEN OTHERS.
+*          LEAVE TO SCREEN 0. "Don't write anything in OTHERS, because if you write something, then it will be executed
+          " and you will leave to the same screen from the LPS screen after the Operations
+      ENDCASE.
+  ENDCASE.
+
+START-OF-SELECTION.
+
+  IF p_chk1 = 'X'.
+    total = p1 + p2.
+    WRITE:/ 'SUM is', total.
+  ENDIF.
+
+  IF p_chk2 = 'X'.
+    total = p1 - p2.
+    WRITE:/ 'Difference is', total.
+  ENDIF.
+
+  IF p_chk3 = 'X'.
+    total = p1 * p2.
+    WRITE:/ 'Multiplication is', total.
+  ENDIF.
+
+  IF p_chk4 = 'X'.
+    total = p1 / p2.
+    WRITE:/ 'Divison is', total.
+  ENDIF.
+
+  IF p_chk5 = 'X'.
+    total = sqrt( ( p1 + p2 ) * ( p1 - p2 ) ).
+    WRITE:/ 'Other calculation results in', total.
+  ENDIF.

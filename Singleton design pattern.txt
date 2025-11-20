@@ -1,0 +1,59 @@
+*&---------------------------------------------------------------------*
+*& Report ZSINGLETON_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsingleton_u29.
+
+*DATA: lv_val TYPE i.
+
+CLASS cls_single DEFINITION CREATE PRIVATE.
+  PUBLIC SECTION.
+*  global methods to accessed by other methods
+    CLASS-METHODS: global RETURNING VALUE(ro_global) TYPE REF TO cls_single,
+      set_value IMPORTING lv_value TYPE i,
+      get_value RETURNING VALUE(rv_value) TYPE i.
+
+  PRIVATE SECTION.
+*  global attributes
+    CLASS-DATA: gl_obj TYPE REF TO cls_single,
+                gl_val TYPE i.
+ENDCLASS.
+
+CLASS cls_single IMPLEMENTATION.
+*  if global instance is not present, then create a new one, else  pass the existing one.
+  METHOD:global.
+    IF gl_obj is INITIAL.
+      CREATE OBJECT gl_obj.
+    ENDIF.
+    ro_global = gl_obj.
+  ENDMETHOD.
+
+  METHOD get_value.
+    rv_value = gl_val.
+    ENDMETHOD.
+
+    METHOD set_value.
+      gl_val = lv_value.
+      ENDMETHOD.
+ENDCLASS.
+
+DATA: lo_single1 TYPE REF TO cls_single,
+      lo_single2 TYPE REF TO cls_single,
+
+      lv_val1 TYPE i,
+      lv_val2 TYPE i.
+
+START-OF-SELECTION.
+
+lo_single1 = cls_single=>global( ).
+lo_single1->set_value( 50 ).
+lv_val1 = lo_single1->get_value( ).
+
+lo_single2 = cls_single=>global( ).
+lo_single2->set_value( 70 ).
+lo_single1->set_value( 30 ).
+lv_val2 = lo_single2->get_value( ).
+*lv_val2 = lo_single1->get_value( ).
+
+WRITE:/ lv_val1, lv_val2.

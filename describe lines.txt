@@ -1,0 +1,53 @@
+*&---------------------------------------------------------------------*
+*& Report ZINTTBLPRG_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZINTTBLPRG_U29.
+
+TABLES zemp_master_u29.
+* Create a structure
+TYPES: BEGIN OF ty_ZEMP_MASTER_U29,
+         emp_id TYPE zemp_master_u29-emp_id,
+         name   TYPE zemp_master_u29-name,
+         dept   TYPE zemp_master_u29-department,
+       END OF ty_ZEMP_MASTER_U29.
+
+*Create internal table and work are
+DATA: lt_EMP_MASTER TYPE TABLE OF ty_zemp_master_u29,
+      wa_EMP_MASTER TYPE ty_zemp_master_u29,
+      lv_num        TYPE i.
+
+DESCRIBE TABLE lt_emp_master LINES lv_num.
+WRITE :'The number of entries in internal table are BEFORE',lv_num.
+
+SELECT emp_id, name, department FROM zemp_master_u29 INTO TABLE @lt_emp_master.
+  LOOP AT lt_emp_master INTO wa_emp_master.
+    WRITE: / wa_emp_master-emp_id, wa_emp_master-name, wa_emp_master-dept.
+*    INSERT wa_emp_master INTO lt_emp_master.
+    WRITE /1(50) sy-uline .
+  ENDLOOP.
+*ENDSELECT.
+
+DESCRIBE TABLE lt_emp_master LINES lv_num.
+WRITE :/'The number of entries in internal table are AFTER',lv_num.
+
+*SELECT emp_id
+*       name
+*       dept FROM ZEMP_MASTER_U29 INTO lt_emp_master.
+*ENDSELECT.
+
+*-------------*********************----------------------
+*********************	NOTE:	**************************
+*We can count the number of lines in 3 ways:
+***Method - 1:
+*	Describe table <table_name>.
+*	write: sy-tfill.
+
+***Method-2:
+*	data(lines) = LINES(table_name).
+*	write: lines.
+
+***Method-3:
+*	Describe table <table_name> into data(lines).
+*	write: lines.

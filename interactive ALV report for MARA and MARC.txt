@@ -1,0 +1,184 @@
+
+*&---------------------------------------------------------------------*
+*& Report ZINTALVOOP2_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zintalvoop2_u29.
+
+PARAMETERS: p_mat TYPE matnr.
+
+* step-1 - declaration of itab and str
+TYPES: BEGIN OF ty_mara,
+         matnr TYPE matnr,
+         ernam TYPE ernam,
+         laeda TYPE laeda,
+         pstat TYPE pstat_d,
+       END OF ty_mara.
+
+TYPES: BEGIN OF ty_marc,
+         matnr TYPE matnr,
+         werks TYPE werks_d,
+         mmsta TYPE mmsta,
+         ekgrp TYPE ekgrp,
+       END OF ty_marc.
+
+DATA: lt_mara          TYPE TABLE OF ty_mara,
+      wa_mara          TYPE ty_mara,
+      lt_fieldcat_mara TYPE lvc_t_fcat,
+      wa_fieldcat_mara TYPE lvc_s_fcat,
+      lo_cust_mara     TYPE REF TO cl_gui_custom_container,
+      lo_alv_mara      TYPE REF TO cl_gui_alv_grid,
+
+      lt_marc          TYPE TABLE OF ty_marc,
+      wa_marc          TYPE ty_marc,
+      lt_fieldcat_marc TYPE lvc_t_fcat,
+      wa_fieldcat_marc TYPE lvc_s_fcat,
+      lo_cust_marc     TYPE REF TO cl_gui_custom_container,
+      lo_alv_marc      TYPE REF TO cl_gui_alv_grid,
+
+      wa_layout        TYPE lvc_s_layo.
+
+*class: cl_event definition deferred --> it is used to decalre the class the but tells the compiler that
+*      the class will be defined and implement later.
+
+wa_layout-zebra = 'X'.
+wa_layout-no_vgridln = 'X'.
+wa_layout-grid_title = 'Material Details'.
+
+START-OF-SELECTION.
+
+  CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
+    EXPORTING
+*     I_BUFFER_ACTIVE  =
+      i_structure_name = 'ZSTRMARA_U29' "--> always give a global structure
+*     I_CLIENT_NEVER_DISPLAY       = 'X'
+*     I_BYPASSING_BUFFER           =
+*     I_INTERNAL_TABNAME           =
+    CHANGING
+      ct_fieldcat      = lt_fieldcat_mara
+*   EXCEPTIONS
+*     INCONSISTENT_INTERFACE       = 1
+*     PROGRAM_ERROR    = 2
+*     OTHERS           = 3
+    .
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+  CALL SCREEN '0332'.
+
+CLASS cl_evnt DEFINITION.
+  PUBLIC SECTION.
+    METHODS hndl_evnt FOR EVENT double_click OF cl_gui_alv_grid.
+ENDCLASS.
+
+CLASS cl_evnt IMPLEMENTATION.
+  METHOD hndl_evnt.
+    WRITE:/ 'HIII'.
+    ENDMETHOD.
+  ENDCLASS.
+
+*&---------------------------------------------------------------------*
+*& Module STATUS_0332 OUTPUT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+MODULE status_0332 OUTPUT.
+* SET PF-STATUS 'xxxxxxxx'.
+* SET TITLEBAR 'xxx'.
+  SELECT * FROM mara INTO CORRESPONDING FIELDS OF TABLE lt_mara
+    WHERE matnr = p_mat.
+
+      CREATE OBJECT lo_cust_mara
+    EXPORTING
+*     parent                      =
+      container_name              = 'CONT1'
+*     style                       =
+*     lifetime                    = lifetime_default
+      repid                       = sy-repid
+*     dynnr                       =
+*     no_autodef_progid_dynnr     =
+    EXCEPTIONS
+      cntl_error                  = 1
+      cntl_system_error           = 2
+      create_error                = 3
+      lifetime_error              = 4
+      lifetime_dynpro_dynpro_link = 5
+      OTHERS                      = 6.
+  IF sy-subrc <> 0.
+*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*              WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+    CREATE OBJECT lo_alv_mara
+    EXPORTING
+*     i_shellstyle      = 0
+*     i_lifetime        =
+      i_parent          = lo_cust_mara
+*     i_appl_events     = SPACE
+*     i_parentdbg       =
+*     i_applogparent    =
+*     i_graphicsparent  =
+*     i_name            =
+*     i_fcat_complete   = SPACE
+*     o_previous_sral_handler =
+    EXCEPTIONS
+      error_cntl_create = 1
+      error_cntl_init   = 2
+      error_cntl_link   = 3
+      error_dp_create   = 4
+      OTHERS            = 5.
+  IF sy-subrc <> 0.
+*   MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*              WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+  ENDIF.
+
+  CALL METHOD lo_alv_mara->set_table_for_first_display
+    EXPORTING
+*     i_buffer_active               =
+*     i_bypassing_buffer            =
+*     i_consistency_check           =
+*     i_structure_name              =
+*     is_variant                    =
+*     i_save                        =
+*     i_default                     = 'X'
+      is_layout                     = wa_layout
+*     is_print                      =
+*     it_special_groups             =
+*     it_toolbar_excluding          =
+*     it_hyperlink                  =
+*     it_alv_graphics               =
+*     it_except_qinfo               =
+*     ir_salv_adapter               =
+    CHANGING
+      it_outtab                     = lt_mara
+      it_fieldcatalog               = lt_fieldcat_mara
+*     it_sort                       =
+*     it_filter                     =
+    EXCEPTIONS
+      invalid_parameter_combination = 1
+      program_error                 = 2
+      too_many_lines                = 3
+      OTHERS                        = 4.
+  IF sy-subrc <> 0.
+*   Implement suitable error handling here
+  ENDIF.
+
+  DATA: lo_event TYPE REF TO cl_evnt.
+  CREATE OBJECT lo_event.
+  set HANDLER lo_event->hndl_evnt FOR lo_alv_mara.
+ENDMODULE.
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0332  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0332 INPUT.
+  CASE sy-ucomm.
+    WHEN 'EXIT'.
+      LEAVE TO SCREEN 0.
+*  	WHEN .
+*  	WHEN OTHERS.
+  ENDCASE.
+ENDMODULE.

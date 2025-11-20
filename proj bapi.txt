@@ -1,0 +1,9 @@
+Bapi to be searched:
+
+- Project Creation. ( 1. BAPI to find ) :- BAPI_PROJECTDEF_CREATE, BAPI_BUS2001_CREATE, BAPI_PROJECT_MAINTAIN, 
+- Partner Creation. ( *** 2 . Later )
+- Table - PROJ
+- CJ20N ( ** )
+- CJ01
+- 
+- 

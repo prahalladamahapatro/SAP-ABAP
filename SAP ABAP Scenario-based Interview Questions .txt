@@ -1,0 +1,90 @@
+1. What is the importance of SAP ABAP in our ecosystem like SAP?
+ANS:	i. SAP’s Core Applications Run on ABAP - Whether it’s ECC or S/4HANA, the backbone of SAP’s enterprise applications—FI, MM, SD, PP—has always been written in ABAP.
+	ii. Business Customization Depends on ABAP - SAP provides the standard functionality; but ABAP developers shape it to fit the customer (Enhancements, BAdIs, Custom reports, etc)
+	iii. Even Cloud (SAP BTP) Still Uses ABAP - SAP has introduced ABAP on BTP and RAP model.	Modern ABAP = Cloud-ready ABAP.
+	iv. High Performance on HANA Depends on ABAP Optimization - HANA is an in-memory database. This performance tuning is still ABAP territory.
+	v. Integration With Everything Else - ABAP acts like the “controller” in the SAP world:	
+						•Connecting SAP to non-SAP systems  •Building OData services  •Backend logic for Fiori apps  •Supporting interfaces (IDocs, RFCs, BAPIs)
+
+As SAP isn’t just software—it’s the digital backbone of many large enterprises. So, ABAP is the language that makes this backbone flexible, efficient, and future-proof.
+As long as SAP exists, ABAP will remain a major pillar.
+
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+2. Given your experience, how would you approach creating a custom report using ALV? Could you walk me through the considerations and steps you usually take?
+ANS: How to Approach Creating a Custom ALV Report (Step-by-Step) as an experienced ABAP Developer:
+	I. Understand the Business Requirement First (What data the user wants, From which tables, What filters they need on the selection screen, How the output should look (columns, 		totals, sorting, subtotals)).
+	II. Identify the Tables and Joins Clearly (Primary keys, Foreign keys, Read patterns (read by primary key, ranges, or joins))
+	III. Fetch Data Efficiently (Avoid nested SELECTs, Use of indexed key fields in WHERE conditions, Use FOR ALL ENTRIES instead of Inner join for large datasets)
+	IV. Prepare the Field Catalog (Column Position, Column texts, Key fields, Checkbox, hotspot, color flags)
+	V. Choose the ALV Type Based on Requirement [REUSE_ALV_GRID_DISPLAY (Classic but still used), CL_SALV_TABLE (Modern, object-oriented), CL_GUI_ALV_GRID (complex and interactive)]
+	VI. Add Interactivity (Double-click events, Row coloring, Hotspot clicks, ALV toolbar buttons, Custom PF-STATUS)
+
+Understand business Requirement → Data( define the str, wa, itab) → Selection Screen → Retrieval → Field Catalog → Display → Events and other functionalities (HOTSPOT, COLOURISE COLUMN).
+
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+3. Suppose you need to enhance an existing ALV report that isn't performing well due to a large volume of data. How would you approach optimizing it?
+ANS: Performance issues in ALV—this is a classic ABAP problem. Optimizing an ALV report isn’t about making it look prettier; it’s about making it efficient, fast, and scalable.
+	I. Analyze the Performance Bottleneck (Before changing anything, Use SQL trace (ST05) to see database hits or Use Runtime Analysis (SE30 / SAT) to check which parts are slow)
+	II. Optimize the Data Fetching ( Use SELECT with Field names and proper WHERE conditions and ranges, instead of SELECT *. Use indexed Key-fields in WHERE condition)
+	III. Avoid nested SELECTs; prefer JOINs or FOR ALL ENTRIES. While using FOR ALL ENTRIES, always check that the internal table is not empty; otherwise, it selects all records.
+	IV. Optimize Internal Table Operations ( Use READ TABLE … WITH KEY or hashed tables for O(1) lookup, Sort once, not multiple times.)
+	V. Use Efficient ALV Techniques ( CL_SALV_TABLE automatically handles huge tables better than old REUSE_ALV_GRID_DISPLAY )
+
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+4. Since you've mentioned ABAP on HANA, how do you see CDS views fitting into your optimization strategy?
+ANS: CDS views play a central role in an ABAP-on-HANA optimization strategy.
+	I. Code Pushdown ( With CDS, we can perform Joins, Filters, Unions, Grouping & aggregations, which are all executed on the HANA database)
+	II. Use of Associations Instead of Manual Joins
+	III. Expose Semantic rich Annotations - UI annotations, Authorization checks, EndUserText.label, Odata.Service, @buffering, compiler.compareFilter, preserveKey
+	IV. Performance Improvements (Columnar storage, Advanced query optimizer, Partition pruning)
+	V. Reduce ABAP Processing (CDS handles filtering, aggregation, and joins. ABAP only needs to fetch the CDS result into an internal table.)
+
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+5. Do you share an example of a challenging debugging session you've had, and how you approached resolving the issue?
+ANS: Scenario: Slow ALV Report with Incorrect Totals
+	A client complained:
+	• The ALV report is taking 4–5 minutes to run for large datasets.
+	• Some totals in the ALV footer are incorrect.
+
+	APPROACH:
+	1. Use the Tracing Tools:
+		• SQL Trace (ST05) → checked the SELECT statements.
+		• Runtime Analysis (SAT / SE30) → identified nested loops and multiple SELECTs inside loops as the major bottleneck.
+	The report was fetching 200k rows and then looping multiple times to calculate totals → huge performance hit.
+
+	2. Used JOINs in CDS instead of looping in ABAP. Replaced manual total calculation with database aggregation → HANA handled sums.
+	3. Switched from REUSE_ALV_GRID_DISPLAY to CL_SALV_TABLE for better performance and layout control.
+
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------
+-------------*********************----------------------	-------------*********************----------------------	-------------*********************----------------------

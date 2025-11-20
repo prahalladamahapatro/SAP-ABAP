@@ -1,0 +1,361 @@
+*&---------------------------------------------------------------------*
+*& Report ZSEND_EMAIL_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsend_email_u29.
+
+* text field for user name
+PARAMETERS: p_user TYPE ernam DEFAULT sy-uname.
+* check box to send Email
+PARAMETERS: p_check AS CHECKBOX DEFAULT 'X'.
+
+TYPES: BEGIN OF ty_str,
+         vbeln TYPE vbeln_va,
+         ernam TYPE ernam,
+         erdat TYPE erdat,
+         netwr TYPE netwr,
+       END OF ty_str.
+
+TYPES: BEGIN OF ty_data,
+         data(100) TYPE c,
+       END OF ty_data.
+
+DATA: lt_vbak TYPE TABLE OF ty_str,
+      wa_vbak TYPE ty_str,
+
+      lt_data TYPE TABLE OF ty_data,
+      wa_data TYPE ty_data,
+
+      lt_bin  TYPE solix_tab, " internal tbl to store the binary data
+      lo_bcs  TYPE REF TO cl_bcs, " to create persistent sent request
+      lo_user TYPE REF TO cl_sapuser_bcs, " to create the SAP user or recipient
+      lv_email TYPE ADR6-SMTP_ADDR, "to get the email address of the recipient (AD_SMTPADR)
+      lo_extuser TYPE REF TO CL_CAM_ADDRESS_BCS, "to create the external user or recipient
+      lo_extuser1 TYPE REF TO CL_CAM_ADDRESS_BCS, "to create the external user or recipient
+      lv_subject TYPE so_obj_des, "to write the subject of the mail
+      lt_text TYPE soli_tab, " to write the body of the mail
+      wa_text TYPE soli,
+      lo_docu TYPE REF TO CL_DOCUMENT_BCS, "to create the object for document
+      lv_attachment TYPE SOOD-OBJDES, " to add the attachment subject
+      lv_result TYPE boolean_flg.
+
+DATA: lt_fieldcat TYPE slis_t_fieldcat_alv,
+      wa_fieldcat TYPE slis_fieldcat_alv,
+      ls_layout   TYPE slis_layout_alv,
+      lv_amt(10)  TYPE c,
+      lv_lines TYPE n.
+
+START-OF-SELECTION.
+
+  SELECT * FROM vbak INTO CORRESPONDING FIELDS OF TABLE lt_vbak
+    WHERE ernam = p_user.
+
+  IF p_check = 'X'.
+
+***    step-1 convert the table data into text file
+    CONCATENATE TEXT-000 TEXT-001 TEXT-002 TEXT-003 INTO wa_data-data SEPARATED BY space.
+    APPEND wa_data TO lt_data.
+    CLEAR wa_data.
+
+    LOOP AT lt_vbak INTO wa_vbak.
+*      IF sy-tabix = 1. "As we want the field label one time
+*        CONCATENATE TEXT-000 TEXT-001 TEXT-002 TEXT-003 INTO wa_data-data SEPARATED BY space.
+*        APPEND wa_data TO lt_data.
+*        CLEAR wa_data.
+*      ENDIF.
+
+      lv_amt = wa_vbak-netwr.
+      CONCATENATE wa_vbak-vbeln wa_vbak-ernam wa_vbak-erdat lv_amt INTO wa_data-data SEPARATED BY space.
+      CLEAR wa_data.
+    ENDLOOP.
+
+***    step-2 convert the text data to binary data
+    CALL FUNCTION 'SCMS_TEXT_TO_BINARY'
+*     EXPORTING
+*       FIRST_LINE            = 0
+*       LAST_LINE             = 0
+*       APPEND_TO_TABLE       = ' '
+*       MIMETYPE              = ' '
+*       ENCODING              =
+*     IMPORTING
+*       OUTPUT_LENGTH         =
+      TABLES
+        text_tab   = lt_data
+        binary_tab = lt_bin
+      EXCEPTIONS
+        failed     = 1
+        OTHERS     = 2.
+    IF sy-subrc <> 0.
+* Implement suitable error handling here
+    ENDIF.
+
+***    step-3 to create persistent send request
+    TRY.
+        CALL METHOD cl_bcs=>create_persistent
+          RECEIVING
+            result = lo_bcs.
+      CATCH cx_send_req_bcs.
+    ENDTRY.
+
+***   step-4.1 to create the  SAP USER to send the attachment
+    TRY.
+        CALL METHOD cl_sapuser_bcs=>create
+          EXPORTING
+            i_user = sy-uname
+          RECEIVING
+            result = lo_user.
+      CATCH cx_address_bcs.
+    ENDTRY.
+
+***    step-5.1 add the recipient (to add the recipient, we need to use the cl_bcs class [use lo_bcs object])
+    TRY.
+        CALL METHOD lo_bcs->add_recipient
+          EXPORTING
+            i_recipient = lo_user " to add the created user as recipient
+*           i_express   =
+*           i_copy      =
+*           i_blind_copy =
+*           i_no_forward =
+          .
+      CATCH cx_send_req_bcs.
+    ENDTRY.
+
+***    step-4.2.1 to create the external user to send the attachment
+    TRY.
+    CALL METHOD cl_cam_address_bcs=>create_internet_address
+      EXPORTING
+        i_address_string = 'prahalladam452@gmail.com'
+*        i_address_name   =
+*        i_incl_sapuser   =
+      receiving
+        result           = lo_extuser
+        .
+      CATCH cx_address_bcs.
+    ENDTRY.
+
+***     step-5.2.1  to add the first extrenal recipient (mail in CC)
+    TRY.
+    CALL METHOD lo_bcs->add_recipient
+      EXPORTING
+        i_recipient  = lo_extuser
+*        i_express    =
+        i_copy       = 'X'
+*        i_blind_copy =
+*        i_no_forward =
+        .
+      CATCH cx_send_req_bcs.
+    ENDTRY.
+
+***    step-4.2.2 to create the external user to send the attachment
+    TRY.
+    CALL METHOD cl_cam_address_bcs=>create_internet_address
+      EXPORTING
+        i_address_string = 'kahnamhp2834@gmail.com'
+*        i_address_name   =
+*        i_incl_sapuser   =
+      receiving
+        result           = lo_extuser1
+        .
+      CATCH cx_address_bcs.
+    ENDTRY.
+
+***     step-5.2.2  to add the second extrenal recipient (mail in BCC)
+    TRY.
+    CALL METHOD lo_bcs->add_recipient
+      EXPORTING
+        i_recipient  = lo_extuser1
+*        i_express    =
+*        i_copy       =
+        i_blind_copy = 'X'
+*        i_no_forward =
+        .
+      CATCH cx_send_req_bcs.
+    ENDTRY.
+
+    DESCRIBE TABLE lt_vbak LINES lv_lines.
+    CONCATENATE TEXT-004 '_' p_user ' is : ' lv_lines INTO lv_subject.
+
+    wa_text-line = text-005.
+    APPEND wa_text TO lt_text.
+    CLEAR wa_text.
+
+    wa_text-line = text-006.
+    APPEND wa_text TO lt_text.
+    CLEAR wa_text.
+
+    wa_text-line = text-007.
+    APPEND wa_text TO lt_text.
+    CLEAR wa_text.
+
+    wa_text-line = text-008.
+    APPEND wa_text TO lt_text.
+    CLEAR wa_text.
+
+    wa_text-line = text-009.
+    APPEND wa_text TO lt_text.
+    CLEAR wa_text.
+
+***    step-6 to create the document
+    TRY.
+    CALL METHOD cl_document_bcs=>create_document
+      EXPORTING
+        i_type         = 'RAW' "(It is a 3-character code to represent what type of document is it, i.e. code for document class)
+* to know more about the 'i_type', double click 'create_document' -> dbl clk on 'TYPE SO_OBJ_TP' -> dbl clk on domain -> then go to value range
+* and check the value table to get the different types of class or 3-character code. (R3I for IDoC)
+        i_subject      = lv_subject
+*        i_length       =
+*        i_language     = SPACE
+*        i_importance   =
+*        i_sensitivity  =
+        i_text         = lt_text
+*        i_hex          =
+*        i_header       =
+*        i_sender       =
+*        iv_vsi_profile =
+      RECEIVING
+        result         = lo_docu
+        .
+      CATCH cx_document_bcs.
+    ENDTRY.
+
+    CONCATENATE 'Sales Order_' p_user INTO lv_attachment.
+
+***    step-7 add the attachment in the mail
+    TRY.
+    CALL METHOD lo_docu->add_attachment
+      EXPORTING
+        i_attachment_type     = 'XLS'
+        i_attachment_subject  = lv_attachment
+*        i_attachment_size     =
+*        i_attachment_language = SPACE
+*        i_att_content_text    =
+        i_att_content_hex     = lt_bin
+*        i_attachment_header   =
+*        iv_vsi_profile        =
+        .
+      CATCH cx_document_bcs.
+    ENDTRY.
+
+***    step-8 set the document to be sent (to link the document and BCS document)
+    TRY.
+    CALL METHOD lo_bcs->set_document
+      EXPORTING
+        i_document = lo_docu
+        .
+      CATCH cx_send_req_bcs.
+    ENDTRY.
+
+***   step-9 activating or deactivating the immediate sending
+    TRY.
+    CALL METHOD lo_bcs->set_send_immediately
+      EXPORTING
+        i_send_immediately = ' ' "blank means deactivate and 'X' means activate
+        .
+      CATCH cx_send_req_bcs.
+    ENDTRY.
+
+***    step-10 check whether the mail has sent or not
+    TRY.
+    CALL METHOD lo_bcs->send
+*      EXPORTING
+*        i_with_error_screen = SPACE
+      RECEIVING
+        result              = lv_result " to check whether the mail has sent or not
+        .
+      CATCH cx_send_req_bcs.
+    ENDTRY.
+
+***    step-11 commit the send process
+*    If you are sending the mail within SAP, then we don't need to commit.
+*    But when we need to send the mail to the external user, then we have to use commit work.
+    IF lv_result IS NOT INITIAL.
+      commit WORK.
+      MESSAGE S005(ZMSG).
+    ENDIF.
+
+  ENDIF.
+
+  wa_fieldcat-col_pos = 1.
+  wa_fieldcat-fieldname = 'VBELN'.
+  wa_fieldcat-seltext_l = TEXT-000.
+  APPEND wa_fieldcat TO lt_fieldcat.
+  CLEAR wa_fieldcat.
+
+  wa_fieldcat-col_pos = 2.
+  wa_fieldcat-fieldname = 'ERNAM'.
+  wa_fieldcat-seltext_l = TEXT-001.
+  APPEND wa_fieldcat TO lt_fieldcat.
+  CLEAR wa_fieldcat.
+
+  wa_fieldcat-col_pos = 3.
+  wa_fieldcat-fieldname = 'ERDAT'.
+  wa_fieldcat-seltext_l = TEXT-002.
+  APPEND wa_fieldcat TO lt_fieldcat.
+  CLEAR wa_fieldcat.
+
+  wa_fieldcat-col_pos = 4.
+  wa_fieldcat-fieldname = 'NETWR'.
+  wa_fieldcat-seltext_l = TEXT-003.
+  APPEND wa_fieldcat TO lt_fieldcat.
+  CLEAR wa_fieldcat.
+
+  CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+    EXPORTING
+*     I_INTERFACE_CHECK  = ' '
+*     I_BYPASSING_BUFFER = ' '
+*     I_BUFFER_ACTIVE    = ' '
+      i_callback_program = sy-repid
+*     I_CALLBACK_PF_STATUS_SET          = ' '
+*     I_CALLBACK_USER_COMMAND           = ' '
+*     I_CALLBACK_TOP_OF_PAGE            = ' '
+*     I_CALLBACK_HTML_TOP_OF_PAGE       = ' '
+*     I_CALLBACK_HTML_END_OF_LIST       = ' '
+*     I_STRUCTURE_NAME   =
+*     I_BACKGROUND_ID    = ' '
+*     I_GRID_TITLE       =
+*     I_GRID_SETTINGS    =
+      is_layout          = ls_layout
+      it_fieldcat        = lt_fieldcat
+*     IT_EXCLUDING       =
+*     IT_SPECIAL_GROUPS  =
+*     IT_SORT            =
+*     IT_FILTER          =
+*     IS_SEL_HIDE        =
+*     I_DEFAULT          = 'X'
+*     I_SAVE             = ' '
+*     IS_VARIANT         =
+*     IT_EVENTS          =
+*     IT_EVENT_EXIT      =
+*     IS_PRINT           =
+*     IS_REPREP_ID       =
+*     I_SCREEN_START_COLUMN             = 0
+*     I_SCREEN_START_LINE               = 0
+*     I_SCREEN_END_COLUMN               = 0
+*     I_SCREEN_END_LINE  = 0
+*     I_HTML_HEIGHT_TOP  = 0
+*     I_HTML_HEIGHT_END  = 0
+*     IT_ALV_GRAPHICS    =
+*     IT_HYPERLINK       =
+*     IT_ADD_FIELDCAT    =
+*     IT_EXCEPT_QINFO    =
+*     IR_SALV_FULLSCREEN_ADAPTER        =
+*     O_PREVIOUS_SRAL_HANDLER           =
+*   IMPORTING
+*     E_EXIT_CAUSED_BY_CALLER           =
+*     ES_EXIT_CAUSED_BY_USER            =
+    TABLES
+      t_outtab           = lt_vbak
+    EXCEPTIONS
+      program_error      = 1
+      OTHERS             = 2.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+
+
+FORM ls_layout.
+  ls_layout-edit = 'X'.
+  ls_layout-no_vline = 'X'.
+ENDFORM.

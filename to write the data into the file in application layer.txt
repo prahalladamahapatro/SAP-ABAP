@@ -1,0 +1,48 @@
+*&---------------------------------------------------------------------*
+*& Report ZFILHNDL3_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zfilhndl3_u29.
+
+TABLES: zemp_master_u29.
+
+TYPES: BEGIN OF ty_emp,
+         emp_id     TYPE zemp_id_u29,
+         name       TYPE zempname_u29,
+         department TYPE zdepartment_u29,
+         join_date  TYPE zjoin_date_u29,
+       END OF ty_emp.
+
+DATA: lt_emp TYPE TABLE OF ty_emp,
+      wa_emp TYPE ty_emp.
+
+DATA: lv_filepath(50) TYPE c VALUE 'F:\usr\sap\S4H\D34\data\order.txt'. "tp store the file path
+DATA: lv_string TYPE string.
+*      lv_date(10) TYPE C.
+
+SELECT-OPTIONS: so_empid FOR zemp_master_u29-emp_id. "the select-option should be upto 8 characters.
+
+SELECT * FROM zemp_master_u29
+  INTO CORRESPONDING FIELDS OF TABLE lt_emp
+  WHERE emp_id IN so_empid.
+
+OPEN DATASET lv_filepath FOR OUTPUT IN TEXT MODE ENCODING DEFAULT.
+
+IF sy-subrc = 0.
+  LOOP AT lt_emp INTO wa_emp.
+*    WRITE wa_emp-join_date to lv_date.
+    CONCATENATE wa_emp-emp_id wa_emp-name wa_emp-department wa_emp-join_date INTO lv_string SEPARATED BY '|'.
+    TRANSFER lv_string TO lv_filepath.
+  ENDLOOP.
+
+  MESSAGE S004(ZMSG) WITH lv_filepath.
+ENDIF.
+
+CLOSE DATASET lv_filepath.
+
+**********************************************************************
+*NOTE: To write the data into a file, first we need to store the data into a string variable then we'll transfer it to the file.
+* If you have an amount field, then you have to assign it into a character variable, then concatenate to the string variable
+* (not mandatory for the date field).
+**********************************************************************

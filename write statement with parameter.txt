@@ -1,0 +1,22 @@
+*&---------------------------------------------------------------------*
+*& Report ZWRITE03_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZWRITE03_U29.
+
+* parameters are used for user for a single input at runtime for any field
+SELECTION-SCREEN: BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  PARAMETERS: var1  TYPE c LENGTH 20, marks TYPE p DECIMALS 2 DEFAULT 13.
+SELECTION-SCREEN:END OF BLOCK b1.
+* In selection screen, we can change the default values of a field as per our requirement
+
+WRITE : /'hi',var1,'Welcome to ABAP programming',
+/ 'Your mark is ',marks.
+
+*DATA : age TYPE i VALUE 21 .
+
+********************************************************************
+* NOTE: we can't use the "VALUES" keyword in "PARAMETER" and "DEFAULT" in "DATA".
+*       The "value" is used for variables and the "default" is used for selection-screen.
+********************************************************************

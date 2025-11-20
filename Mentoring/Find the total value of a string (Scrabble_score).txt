@@ -1,0 +1,108 @@
+*&---------------------------------------------------------------------*
+*& Report ZPRACTICE1_PM
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zpractice1_pm.
+CLASS zcl_scrabble_score DEFINITION .
+
+  PUBLIC SECTION.
+    METHODS score
+      IMPORTING
+        user_input    TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE i.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+
+CLASS zcl_scrabble_score IMPLEMENTATION.
+  METHOD score.
+    DATA: len     TYPE i,
+          new_str TYPE string,
+          single  TYPE c,
+          ind     TYPE i VALUE 0.
+
+
+    len = strlen( user_input ).
+    new_str = user_input.
+    TRANSLATE new_str TO UPPER CASE.
+
+    DO len TIMES.
+      single = new_str+ind(1).
+      CASE single.
+        WHEN 'A' OR 'E' OR 'I' OR 'O' OR 'U' OR 'L' OR 'N' OR 'R' OR 'S' OR 'T'.
+          result = result + 1.
+        WHEN 'D' OR 'G'.
+          result = result + 2.
+        WHEN 'B' OR 'C' OR 'M' OR 'P'.
+          result = result + 3.
+        WHEN 'F' OR 'H' OR 'V' OR 'W' OR 'Y'.
+          result = result + 4.
+        WHEN 'K'.
+          result = result + 5.
+        WHEN 'J' OR 'X'.
+          result = result + 8.
+        WHEN 'Q' OR 'Z'.
+          result = result + 10.
+      ENDCASE.
+      ind = ind + 1.
+    ENDDO.
+
+
+*-------------*********************---------------------- ANOTHER PERSON'S SOLUTION -------------*********************----------------------
+*    DATA: one_point    TYPE string VALUE 'AEIOULNRST',
+*          two_points   TYPE string VALUE 'DG',
+*          three_points TYPE string VALUE 'BCMP',
+*          four_points  TYPE string VALUE 'FHVWY',
+*          five_points  TYPE string VALUE 'K',
+*          eight_points TYPE string VALUE 'JX',
+*          ten_points   TYPE string VALUE 'QZ',
+*          len          TYPE i. len = strlen( input ).
+*
+*    TRANSLATE input TO UPPER CASE.
+*
+*    WHILE len <> 0.
+*      " Используем sy-index для доступа к текущему символу
+*      DATA: index TYPE i.
+*      index = sy-index - 1.
+*      IF user_input+index(1) CA one_point.
+*        result = result + 1.
+*      ELSEIF user_input+index(1) CA two_points.
+*        result = result + 2.
+*      ELSEIF user_input+index(1) CA three_points.
+*        result = result + 3.
+*      ELSEIF user_input+index(1) CA four_points.
+*        result = result + 4.
+*      ELSEIF user_input+index(1) CA five_points.
+*        result = result + 5.
+*      ELSEIF user_input+index(1) CA eight_points.
+*        result = result + 8.
+*      ELSEIF user_input+index(1) CA ten_points.
+*        result = result + 10.
+*      ENDIF.
+*
+*      len = len - 1.
+*    ENDWHILE.
+
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+START-OF-SELECTION.
+
+  DATA: lo_obj TYPE REF TO zcl_scrabble_score,
+        output TYPE i.
+  CREATE OBJECT lo_obj.
+
+  lo_obj->score(
+  EXPORTING
+      user_input = 'qkJZx'
+      RECEIVING
+      result = output
+  ).
+
+  WRITE:/ 'THE OUTPUT IS', output.

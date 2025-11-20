@@ -1,0 +1,162 @@
+*&---------------------------------------------------------------------*
+*& Report ZCLSALV_PRG1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zclsalv_prg1_u29.
+TABLES: vbap,vbak.
+
+INITIALIZATION.
+  SELECT-OPTIONS: so_vbeln FOR vbak-vbeln.
+
+* declaration of structures
+  TYPES: BEGIN OF ty_vbak,
+           vbeln TYPE vbeln_va,
+           erdat TYPE erdat,
+           ernam TYPE ernam,
+           erzet TYPE erzet,
+         END OF ty_vbak.
+
+  TYPES: BEGIN OF ty_vbap,
+           vbeln TYPE vbeln_va,
+           matnr TYPE matnr,
+           posnr TYPE posnr,
+           posar TYPE posar,
+         END OF ty_vbap.
+
+  TYPES: BEGIN OF ty_final,
+           vbeln TYPE vbeln_va,
+           erdat TYPE erdat,
+           ernam TYPE ernam,
+           erzet TYPE erzet,
+           vbtyp TYPE vbtypl,
+           matnr TYPE matnr,
+           posnr TYPE posnr,
+           posar TYPE posar,
+         END OF ty_final.
+
+  DATA: lt_vbak  TYPE TABLE OF ty_vbak,
+        wa_vbak  TYPE ty_vbak,
+
+        lt_vbap  TYPE TABLE OF ty_vbap,
+        wa_vbap  TYPE ty_vbap,
+
+        lt_final TYPE TABLE OF zstrfinal1_u29,
+        wa_final TYPE zstrfinal1_u29.
+
+*Object declaration part
+  DATA: lo_alv TYPE REF TO cl_salv_table, "--> object for salv_table class
+        lo_cust TYPE REF TO cl_gui_custom_container. "--> object for custom container class
+*        lo_cust TYPE REF TO cl_gui_container. "--> object for container class (You can choose the container or custom container)
+
+START-OF-SELECTION.
+
+  SELECT * FROM vbak INTO CORRESPONDING FIELDS OF TABLE lt_vbak
+    WHERE vbeln IN so_vbeln.
+
+  IF lt_vbak[] IS NOT INITIAL.
+    SELECT * FROM vbap INTO CORRESPONDING FIELDS OF TABLE lt_vbap
+      FOR ALL ENTRIES IN lt_vbak
+    WHERE vbeln = lt_vbak-vbeln.
+  ENDIF.
+
+  LOOP AT lt_vbak INTO wa_vbak.
+    LOOP AT lt_vbap INTO wa_vbap WHERE vbeln = wa_vbak-vbeln.
+      wa_final-vbeln = wa_vbak-vbeln.
+      wa_final-erdat = wa_vbak-erdat.
+      wa_final-ernam = wa_vbak-ernam.
+      wa_final-erzet = wa_vbak-erzet.
+      wa_final-posnr = wa_vbap-posnr.
+      wa_final-matnr = wa_vbap-matnr.
+      wa_final-posar = wa_vbap-posar.
+
+      APPEND wa_final TO lt_final.
+      CLEAR wa_final.
+    ENDLOOP.
+  ENDLOOP.
+
+CREATE OBJECT lo_cust
+  EXPORTING
+*    parent                      =
+    container_name              = 'CONT1'
+*    style                       =
+*    lifetime                    = lifetime_default
+*    repid                       =
+*    dynnr                       =
+*    no_autodef_progid_dynnr     =
+  EXCEPTIONS
+    cntl_error                  = 1
+    cntl_system_error           = 2
+    create_error                = 3
+    lifetime_error              = 4
+    lifetime_dynpro_dynpro_link = 5
+    others                      = 6
+    .
+IF sy-subrc <> 0.
+* MESSAGE ID SY-MSGID TYPE SY-MSGTY NUMBER SY-MSGNO
+*            WITH SY-MSGV1 SY-MSGV2 SY-MSGV3 SY-MSGV4.
+ENDIF.
+
+TRY.
+CALL METHOD cl_salv_table=>factory
+  EXPORTING
+    list_display   = IF_SALV_C_BOOL_SAP=>FALSE
+    r_container    = lo_cust
+    container_name = 'CONT1'
+  IMPORTING
+    r_salv_table   = lo_alv
+  CHANGING
+    t_table        = lt_final
+    .
+  CATCH cx_salv_msg.
+ENDTRY.
+
+CALL METHOD lo_alv->display
+    .
+
+call SCREEN '0332'.
+
+INCLUDE zclsalv_prg1_u29_user_commai01.
+
+INCLUDE zclsalv_prg1_u29_status_033o01.
+
+
+*----------------------------------------------------------------------*
+***INCLUDE ZCLSALV_PRG1_U29_USER_COMMAI01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0332  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0332 INPUT.
+*  DATA: ucomm TYPE sy-ucomm.
+
+  CASE sy-ucomm.
+    WHEN 'EXIT'.
+      LEAVE PROGRAM.
+    WHEN 'BACK'.
+      LEAVE TO SCREEN 0.
+    WHEN 'CANCEL'.
+      LEAVE SCREEN.
+    WHEN 'PRVPG'.
+      LEAVE TO SCREEN 0.
+    WHEN 'GOBK'.
+      LEAVE to SCREEN 0.
+*  	WHEN OTHERS.
+  ENDCASE.
+ENDMODULE.
+
+
+*----------------------------------------------------------------------*
+***INCLUDE ZCLSALV_PRG1_U29_STATUS_033O01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Module STATUS_0332 OUTPUT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+MODULE status_0332 OUTPUT.
+ SET PF-STATUS 'MENU'.
+ SET TITLEBAR 'TIT'.
+ENDMODULE.

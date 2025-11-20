@@ -1,0 +1,123 @@
+*&---------------------------------------------------------------------*
+*& Report ZCUSTBTN_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zcustbtn_u29.
+TABLES:vbak,vbap.
+
+*Declare structure for the tables
+TYPES: BEGIN OF ty_vbak,
+         vbeln TYPE vbeln,
+         erdat TYPE erdat,
+         ernam TYPE ernam,
+         erzet TYPE erzet,
+       END OF ty_vbak.
+
+TYPES: BEGIN OF ty_vbap,
+         vbeln TYPE vbeln,
+         posnr TYPE posnr, "Item number
+         matnr TYPE matnr,
+         posar TYPE posar, "Item type
+       END OF ty_vbap.
+
+TYPES: BEGIN OF ty_final,
+         vbeln TYPE vbak-vbeln,
+         erdat TYPE vbak-erdat,
+         ernam TYPE vbak-ernam,
+         erzet TYPE vbak-erzet,
+         posnr TYPE vbap-posnr,
+         matnr TYPE vbap-matnr,
+         posar TYPE vbap-posar,
+       END OF ty_final.
+
+*       decalre the internal table and work area
+DATA: lt_vbak       TYPE TABLE OF ty_vbak,
+      wa_vbak       TYPE ty_vbak,
+
+      lt_vbap       TYPE TABLE OF ty_vbap,
+      wa_vbap       TYPE ty_vbap,
+
+      lt_final      TYPE TABLE OF ty_final,
+      wa_final      TYPE ty_final,
+
+      lt_final_demo TYPE TABLE OF ty_final,
+      wa_final_demo TYPE ty_final,
+
+      lv_num        TYPE i,
+      lv_num1       TYPE i.
+
+SET PF-STATUS 'CUST_MENU'.
+
+START-OF-SELECTION.
+
+  SELECT vbak~vbeln
+         vbak~erdat
+         vbak~ernam
+         vbak~erzet
+         vbap~posnr
+         vbap~matnr
+         vbap~posar FROM vbak INNER JOIN vbap ON ( vbak~vbeln EQ vbap~vbeln ) INTO TABLE lt_final.
+
+  LOOP AT lt_final INTO DATA(ls_data).
+*   write /:ls_Data-erdat, ls_data-ernam, ls_data-erzet, ls_data-matnr, ls_data-posnr, ls_data-posar, ls_data-vbeln.
+    WRITE :/ ls_data-vbeln, ls_Data-erdat, ls_data-ernam, ls_data-erzet, ls_data-matnr, ls_data-posnr, ls_data-posar.
+*   the 1st one is used to all the field values in each neew line, whereas the 2nd one is used to create new line for each record
+
+  ENDLOOP.
+
+
+AT USER-COMMAND.
+  CASE sy-ucomm.
+    WHEN 'ASCENDING'.
+      SORT lt_final ASCENDING .
+      LOOP AT lt_final INTO wa_final.
+        WRITE:/ wa_final-vbeln, wa_final-erdat, wa_final-ernam, wa_final-erzet, wa_final-posnr, wa_final-matnr, wa_final-posar.
+        SKIP.
+        CLEAR wa_final.
+      ENDLOOP.
+
+    WHEN 'DESCENDING'.
+      SORT lt_final DESCENDING.
+      LOOP AT lt_final INTO wa_final.
+        WRITE:/ wa_final-vbeln, wa_final-erdat, wa_final-ernam, wa_final-erzet, wa_final-posnr, wa_final-matnr, wa_final-posar.
+        SKIP.
+        CLEAR wa_final.
+      ENDLOOP.
+
+    WHEN 'FIRST10'.
+      INSERT LINES OF lt_final FROM 1 TO 10 INTO TABLE lt_final_demo.
+*      lt_tabl2[] = lt_tabl1[] --> to transfer the data from internal table 1 to internal table 2
+      LOOP AT lt_final_demo INTO wa_final_demo.
+        WRITE:/ wa_final_demo-vbeln, wa_final_demo-erdat, wa_final_demo-ernam, wa_final_demo-erzet, wa_final_demo-posnr, wa_final_demo-matnr, wa_final_demo-posar.
+        SKIP.
+        CLEAR wa_final_demo.
+      ENDLOOP.
+      CLEAR lt_final_demo[].
+
+    WHEN 'LAST10'.
+      DESCRIBE TABLE lt_final LINES lv_num.
+      IF lv_num > 10.
+        lv_num1 = lv_num - 9.
+      ELSE.
+        lv_num1 = 1.
+      ENDIF.
+
+      LOOP AT lt_final INTO wa_final FROM lv_num1 TO lv_num.
+        APPEND wa_final TO lt_final_demo.
+        CLEAR wa_final.
+      ENDLOOP.
+
+      SORT lt_final_demo DESCENDING.
+
+      LOOP AT lt_final_demo INTO wa_final_demo.
+        WRITE:/ wa_final_demo-vbeln, wa_final_demo-erdat, wa_final_demo-ernam, wa_final_demo-erzet, wa_final_demo-posnr, wa_final_demo-matnr, wa_final_demo-posar.
+        SKIP.
+        CLEAR wa_final_demo.
+
+      ENDLOOP.
+      CLEAR lt_final_demo[].
+
+    WHEN OTHERS.
+      WRITE:/ 'Better Luck Next time'.
+  ENDCASE.

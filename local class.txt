@@ -1,0 +1,59 @@
+*&---------------------------------------------------------------------*
+*& Report ZOOPALV3_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zoopalv3_u29.
+
+*select-OPTIONS svbeln FOR vbak-vbeln.
+PARAMETERS: p_vbeln TYPE vbeln_va.
+DATA: lv_erdat TYPE erdat,
+      lv_erzet TYPE erzet,
+      lv_ernam TYPE ernam,
+      lv_vbtyp TYPE vbtyp.
+**********************************************************************
+*To create the local class, we have to create 2 blocks.
+*  1. for definitio.
+*  2. for implementation
+**********************************************************************
+
+CLASS lc_cls DEFINITION.
+  PUBLIC SECTION. "it can be private or protected also.
+    METHODS get_data IMPORTING  pvbeln TYPE vbeln_va
+                     EXPORTING  perdat TYPE erdat
+                                perzet TYPE erzet
+                                pernam TYPE ernam
+                                pvbtyp TYPE vbtyp
+                     EXCEPTIONS invalid_input.
+ENDCLASS.
+
+CLASS lc_cls IMPLEMENTATION.
+  METHOD get_data.
+    SELECT SINGLE erdat erzet ernam vbtyp FROM vbak
+      INTO  (perdat, perzet, pernam, pvbtyp)
+      WHERE vbeln = pvbeln.
+    IF sy-subrc <> 0.
+      RAISE invalid_input.
+    ENDIF.
+  ENDMETHOD.
+ENDCLASS.
+
+START-OF-SELECTION.
+
+  DATA: lv_obj TYPE REF TO lc_cls.
+  CREATE OBJECT lv_obj.
+
+  lv_obj->get_data( EXPORTING pvbeln = p_vbeln
+  IMPORTING perdat = lv_erdat
+    perzet = lv_erzet
+    pernam = lv_ernam
+    pvbtyp = lv_vbtyp
+
+    EXCEPTIONS invalid_input = 1 ) .
+
+  IF sy-subrc = 0.
+    WRITE:/ lv_erdat, lv_ernam, lv_erzet, lv_vbtyp.
+
+  ELSE.
+    MESSAGE e002(zmsg).
+  ENDIF.

@@ -1,0 +1,26 @@
+*&---------------------------------------------------------------------*
+*& Report ZCASEPRM_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zcaseprm_u29.
+
+PARAMETERS day  TYPE i DEFAULT 0.
+CASE day.
+  WHEN 0.
+    WRITE `IT REPRESENTS "SUNDAY"`.
+  WHEN 1.
+    WRITE `IT REPRESENTS "MONDAY"`.
+  WHEN 2.
+    WRITE `IT REPRESENTS "TUESDAY"`.
+  WHEN 3.
+    WRITE `IT REPRESENTS "WEDNESDAY"`.
+  WHEN 4.
+    WRITE `IT REPRESENTS "THURSDAY"`.
+  WHEN 5.
+    WRITE `IT REPRESENTS "FRIDAY"`.
+  WHEN 6.
+    WRITE `IT REPRESENTS "SATURDAY"`.
+  WHEN OTHERS.
+    WRITE / sy-datum.
+ENDCASE.

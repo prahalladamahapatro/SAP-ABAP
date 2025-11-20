@@ -1,0 +1,244 @@
+*&---------------------------------------------------------------------*
+*& Report ZBASSIGN7_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zbassign7_u29.
+
+DATA: lt_mat TYPE TABLE OF zmatass_u29,
+      wa_mat TYPE zmatass_u29.
+
+DATA: lo_alv      TYPE REF TO cl_salv_table,
+      lo_cust     TYPE REF TO cl_gui_custom_container,
+      lt_fieldcat TYPE  slis_t_fieldcat_alv,
+      wa_fieldcat TYPE slis_fieldcat_alv.
+
+
+PARAMETERS : LV_MAT RADIOBUTTON GROUP RB1 ,
+             LV_SUP RADIOBUTTON GROUP RB1 .
+
+IF LV_MAT = 'X' .
+
+select * from zmatass_u29 into table lt_mat.
+
+wa_fieldcat-fieldname = 'MATNR'.
+wa_fieldcat-seltext_m = 'MATNR' .
+APPEND WA_fIELDCAT TO lt_fieldcat .
+
+wa_fieldcat-fieldname = 'CURR_STK'.
+wa_fieldcat-seltext_m = 'CURRENT STOCK' .
+APPEND WA_fIELDCAT TO lt_fieldcat .
+
+wa_fieldcat-fieldname = 'MIN_STK'.
+wa_fieldcat-seltext_m = 'MIN STOCK' .
+APPEND WA_fIELDCAT TO lt_fieldcat .
+
+wa_fieldcat-fieldname = 'MEINS'.
+wa_fieldcat-seltext_M = 'UNIT OF MEASURE' .
+APPEND WA_fIELDCAT TO lt_fieldcat .
+
+DATA wa_layout TYPE slis_layout_alv .
+
+wa_layout-edit = 'X' .
+
+CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+  EXPORTING
+*   I_INTERFACE_CHECK        = ' '
+*   I_BYPASSING_BUFFER       = ' '
+*   I_BUFFER_ACTIVE          = ' '
+    i_callback_program       = sy-repid
+    i_callback_pf_status_set = 'PFCUST'
+    i_callback_user_command  = 'USRCMD'
+*   I_CALLBACK_TOP_OF_PAGE   = ' '
+*   I_CALLBACK_HTML_TOP_OF_PAGE       = ' '
+*   I_CALLBACK_HTML_END_OF_LIST       = ' '
+*   I_STRUCTURE_NAME         = 'zmatass_u29'
+*   I_BACKGROUND_ID          = ' '
+*   I_GRID_TITLE             =
+*   I_GRID_SETTINGS          =
+    is_layout                = wa_layout
+    it_fieldcat              = lt_fieldcat
+*   IT_EXCLUDING             =
+*   IT_SPECIAL_GROUPS        =
+*   IT_SORT                  =
+*   IT_FILTER                =
+*   IS_SEL_HIDE              =
+*   I_DEFAULT                = 'X'
+*   I_SAVE                   = ' '
+*   IS_VARIANT               =
+*   IT_EVENTS                =
+*   IT_EVENT_EXIT            =
+*   IS_PRINT                 =
+*   IS_REPREP_ID             =
+*   I_SCREEN_START_COLUMN    = 0
+*   I_SCREEN_START_LINE      = 0
+*   I_SCREEN_END_COLUMN      = 0
+*   I_SCREEN_END_LINE        = 0
+*   I_HTML_HEIGHT_TOP        = 0
+*   I_HTML_HEIGHT_END        = 0
+*   IT_ALV_GRAPHICS          =
+*   IT_HYPERLINK             =
+*   IT_ADD_FIELDCAT          =
+*   IT_EXCEPT_QINFO          =
+*   IR_SALV_FULLSCREEN_ADAPTER        =
+*   O_PREVIOUS_SRAL_HANDLER  =
+*   IMPORTING
+*   E_EXIT_CAUSED_BY_CALLER  =
+*   ES_EXIT_CAUSED_BY_USER   =
+  TABLES
+    t_outtab                 = lt_mat
+*   EXCEPTIONS
+*   PROGRAM_ERROR            = 1
+*   OTHERS                   = 2
+  .
+IF sy-subrc <> 0.
+* Implement suitable error handling here
+ENDIF.
+ELSEIF lv_sup = 'X' .
+
+  DATA : LT_SUPL TYPE TABLE OF zsupplier2_u06 ,
+         WA_SUPL TYPE ZSUPPLIER2_U06 .
+
+  SELECT * FROM ZSUPPLIER2_U06 INTO TABLE lt_supl .
+
+  LOOP AT LT_SUPL INTO WA_SUPL .
+    WRITE :/ WA_SUPL-delivery_days , wa_supl-email , WA_SUPL-quality , WA_SUPL-supplier_id .
+  ENDLOOP .
+ENDIF .
+
+FORM pfcust USING rt_extab TYPE slis_t_extab .
+  SET PF-STATUS 'PFA_U29' .
+ENDFORM .
+
+FORM usrcmd USING r_comm LIKE sy-ucomm rs_selfield TYPE slis_selfield .
+  TYPES: BEGIN OF ty_lines,
+           line TYPE char255,
+         END OF ty_lines.
+
+  DATA: lt_lines TYPE TABLE OF ty_lines,
+        wa_lines TYPE ty_lines.
+  DATA lt_mat2 TYPE TABLE OF zmatass_u29 .
+
+  CASE r_comm .
+    WHEN 'MAIL' .
+      DATA : lo_bcs      TYPE REF TO cl_bcs,
+             lo_document TYPE  REF TO cl_document_bcs,
+
+             lt_body     TYPE bcsy_text,
+             lv_subject  TYPE so_obj_des,
+             lv_sender   TYPE adr6-smtp_addr,
+             lv_rcv      TYPE adr6-smtp_addr.
+      DATA : lt_suppl TYPE TABLE OF zsupplier2_u06,
+             wa_suppl TYPE zsupplier2_u06.
+      SELECT * FROM zsupplier2_u06 INTO TABLE lt_suppl .
+
+      LOOP AT lt_suppl INTO wa_suppl  .
+        lo_bcs = cl_bcs=>create_persistent( ).
+        lv_subject = 'SUPPLIER PERFORMANCE FEEDBACK' .
+        APPEND |DEAR SUPPLIER : { wa_suppl-supplier_id }| TO lt_body .
+        APPEND |YOUR CURRENT PERFORMANCE RANKING IS : { wa_suppl-quality }| TO lt_body .
+        APPEND |TIME TAKEN : { wa_suppl-delivery_days }| TO lt_body .
+
+
+        lo_document = cl_document_bcs=>create_document(
+                   i_type         = 'RAW'
+                   i_subject      =  lv_subject
+                   i_text         = lt_body
+                 )
+
+   .
+        lv_sender = 'ANAYROY42003@GMAIL.COM' .
+        lv_RCV = wa_suppl-email .
+        lo_bcs->set_sender(  cl_cam_address_bcs=>create_internet_address( lv_sender ) ).
+        lo_bcs->add_recipient( cl_cam_address_bcs=>create_internet_address( lv_RCV ) ).
+
+        lo_bcs->set_document( lo_document ).
+        lo_bcs->send( ).
+
+        COMMIT WORK .
+
+        IF sy-subrc = 0 .
+          MESSAGE : 'SUCCESFUL' TYPE 'S' .
+*           CATCH cx_send_req_bcs. " BCS: Send Request Exceptions
+        ENDIF .
+
+      ENDLOOP .
+
+    when 'UPDATE' .
+      MODIFY zmatass_u29 FROM TABLE lt_mat .
+
+    when 'VIEW' .
+      CALL SCREEN '100' .
+
+    WHEN 'REORDER' .
+      LOOP AT lt_mat INTO wa_mat .
+        IF wa_mat-curr_stk < wa_mat-min_stk .
+          APPEND wa_mat TO lt_mat2 .
+        ENDIF .
+      ENDLOOP .
+      DATA wa_mat2 LIKE LINE OF lt_mat2 .
+
+      CONCATENATE 'The below is the list of items' ' that has less current stock than the ' INTO wa_lines-line.
+      APPEND wa_lines TO lt_lines.
+
+      LOOP AT lt_mat2 INTO wa_mat2 .
+        DATA cur TYPE string .
+        DATA min TYPE string .
+        MOVE wa_mat2-curr_stk TO cur .
+        MOVE wa_mat2-min_stk TO min .
+        CONCATENATE cur wa_mat2-matnr min wa_mat2-meins INTO wa_lines SEPARATED BY ' '.
+        APPEND wa_lines TO lt_lines.
+      ENDLOOP .
+
+      CALL FUNCTION 'EFG_GEN_SEND_EMAIL'
+        EXPORTING
+          i_title                = 'Material Required'
+          i_sender               = sy-uname
+          i_recipient            = 'grp8@gmail.com'
+          i_flg_commit           = 'X'
+          i_flg_send_immediately = ' '
+        TABLES
+          i_tab_lines            = lt_lines
+        EXCEPTIONS
+          not_qualified          = 1
+          failed                 = 2
+          OTHERS                 = 3.
+  ENDCASE .
+ENDFORM .
+
+***&SPWIZARD: DATA DECLARATION FOR TABLECONTROL 'ZSUPPLIER'
+*&SPWIZARD: DEFINITION OF DDIC-TABLE
+TABLES:   ZSUPPLIER2_U06.
+
+*&SPWIZARD: TYPE FOR THE DATA OF TABLECONTROL 'ZSUPPLIER'
+TYPES: BEGIN OF T_ZSUPPLIER,
+         SUPPLIER_ID LIKE ZSUPPLIER2_U06-SUPPLIER_ID,
+       END OF T_ZSUPPLIER.
+
+*&SPWIZARD: INTERNAL TABLE FOR TABLECONTROL 'ZSUPPLIER'
+DATA:     G_ZSUPPLIER_ITAB   TYPE T_ZSUPPLIER OCCURS 0,
+          G_ZSUPPLIER_WA     TYPE T_ZSUPPLIER. "work area
+DATA:     G_ZSUPPLIER_COPIED.           "copy flag
+
+*&SPWIZARD: DECLARATION OF TABLECONTROL 'ZSUPPLIER' ITSELF
+CONTROLS: ZSUPPLIER TYPE TABLEVIEW USING SCREEN 0100.
+
+*&SPWIZARD: OUTPUT MODULE FOR TC 'ZSUPPLIER'. DO NOT CHANGE THIS LINE!
+*&SPWIZARD: COPY DDIC-TABLE TO ITAB
+MODULE ZSUPPLIER_INIT OUTPUT.
+  IF G_ZSUPPLIER_COPIED IS INITIAL.
+*&SPWIZARD: COPY DDIC-TABLE 'ZSUPPLIER2_U06'
+*&SPWIZARD: INTO INTERNAL TABLE 'g_ZSUPPLIER_itab'
+    SELECT * FROM ZSUPPLIER2_U06
+       INTO CORRESPONDING FIELDS
+       OF TABLE G_ZSUPPLIER_ITAB.
+    G_ZSUPPLIER_COPIED = 'X'.
+    REFRESH CONTROL 'ZSUPPLIER' FROM SCREEN '0100'.
+  ENDIF.
+ENDMODULE.
+
+*&SPWIZARD: OUTPUT MODULE FOR TC 'ZSUPPLIER'. DO NOT CHANGE THIS LINE!
+*&SPWIZARD: MOVE ITAB TO DYNPRO
+MODULE ZSUPPLIER_MOVE OUTPUT.
+  MOVE-CORRESPONDING G_ZSUPPLIER_WA TO ZSUPPLIER2_U06.
+ENDMODULE.

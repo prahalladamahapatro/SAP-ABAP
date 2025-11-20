@@ -1,0 +1,65 @@
+*&---------------------------------------------------------------------*
+*& Report ZMODSUB_P1
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zmodsub_p1.
+
+SELECTION-SCREEN: BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  PARAMETERS: p_val1 TYPE int2 DEFAULT 20,
+              p_val2 TYPE int2 DEFAULT 30.
+SELECTION-SCREEN END OF BLOCK b1.
+
+DATA: lv_out TYPE int2.
+
+* subroutine without parameter
+PERFORM add.
+
+* subroutine with parameter
+PERFORM sum USING p_val1 p_val2 CHANGING lv_out.
+* suppose you are using 2 parameters in using and one parameter in changing of "perform" statement, then in form statement also you have to take
+* 2 parameters in using and one in changing.
+
+* subroutine to call using include program
+PERFORM sub.
+*&---------------------------------------------------------------------*
+*& Form add
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*\
+* call by reference
+FORM add .
+  lv_out = p_val1 + p_val2.
+  WRITE:/ 'Add 2 numbers using subroutine is without parameter'.
+  WRITE:/ 'The addition of', p_val1, 'and', p_val2, 'is', lv_out.
+ENDFORM.
+
+* call by value
+FORM sum USING VALUE(p_val1) VALUE(p_val2) CHANGING lv_out.
+  lv_out = p_val1 + p_val2.
+  WRITE:/ 'Add 2 numbers using subroutine is with parameter'.
+  WRITE:/ 'The addition of', p_val1, 'and', p_val2, 'is', lv_out.
+ENDFORM.
+
+INCLUDE zdsub_p1_subf01.
+
+
+*----------------------------------------------------------------------*
+***INCLUDE ZDSUB_P1_SUBF01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form sub
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM sub .
+  WRITE:/ 'This is from inside the include program and outside the program'.
+lv_out = p_val1 - p_val2.
+WRITE:/ 'The diference between 2 numbers are', lv_out.
+ENDFORM.

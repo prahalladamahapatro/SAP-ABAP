@@ -1,0 +1,253 @@
+*&---------------------------------------------------------------------*
+*& Report ZTEZTPM
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zteztpm.
+
+*PARAMETERS: p1 TYPE i OBLIGATORY DEFAULT 100,
+*            p2 TYPE i DEFAULT 200 OBLIGATORY.
+
+*DATA total TYPE I.
+*DATA: p1 TYPE I VALUE 100,
+*      p2 TYPE i VALUE 200.
+*
+*total = p1 + p2.
+*
+*START-OF-SELECTION.
+
+*MESSAGE | SUM IS { total } | TYPE 'I'. " If the type is I, then it will show a dialog box for user confirmation and
+*                                        the WRITE statement below it will be executed.
+
+*MESSAGE | SUM IS { total } | TYPE 'S'. " If the type is S, then the message will be displayed in the status bar with green icon and
+*                                        the WRITE statement below it will be executed.
+
+*MESSAGE | SUM IS { total } | TYPE 'W'. "If the type is W, then it will display the message in status bar with red icon and
+*                                        the WRITE statement below it will not be executed.
+
+*MESSAGE | SUM IS { total } | TYPE 'E'. "If the type is E, then the message will be displayed in status bar with red icon and
+*                                        the WRITE statement below it will not be executed.
+
+*MESSAGE | SUM IS { total } | TYPE 'A'. "If the type is A, then it will display the message in a CANCEL dialog box and
+*                                       when you click on the EXIT button, then you will move to the SAP Easy Access Screen.
+
+*MESSAGE | SUM IS { total } | TYPE 'X'. "If the type is X, then you will get a short-dump. But, this message will be displayed in
+*                                        the ERROR ANALYSIS section of that Dump (or check ST22 for detailed information).
+
+*
+*  IF total >= 500.
+*    MESSAGE 'Value cannot be greater than or equal to 500!' TYPE 'E'.  "Error
+*    WRITE 'This statement will NOT be executed.'.
+*  ELSEIF total >= 300.
+*    MESSAGE 'Value is greater than or equal to 300.' TYPE 'W'.           "Warning
+*    WRITE 'This statement WILL be executed.'.
+*  ELSE.
+*    WRITE 'Value is acceptable.'.
+*  ENDIF.
+
+*WRITE total.
+
+*PARAMETERS: p_msgtyp TYPE c LENGTH 1.
+*
+*START-OF-SELECTION.
+*
+*CASE p_msgtyp.
+*    WHEN 'E'. "Error message
+*      MESSAGE 'This is an ERROR message' TYPE 'E'.
+**      MESSAGE e000(00) WITH 'This is an ERROR message'.
+*      WRITE: / 'This line will NOT be printed after ERROR'.
+*
+*    WHEN 'W'. "Warning message
+*      MESSAGE 'This is an WARNING message' TYPE 'W'.
+**      MESSAGE w000(00) WITH 'This is a WARNING message'.
+*      WRITE: / 'This line WILL be printed after WARNING'.
+*
+*    WHEN 'I'. "Information message
+*      MESSAGE 'This is an INFORMATION message' TYPE 'I'.
+**      MESSAGE i000(00) WITH 'This is an INFORMATION message'.
+*      WRITE: / 'This line WILL be printed after INFORMATION'.
+*
+*    WHEN 'S'. "Status message
+*      MESSAGE 'This is an SUCCESS message' TYPE 'S'.
+**      MESSAGE s000(00) WITH 'This is a STATUS message'.
+*      WRITE: / 'This line WILL be printed after STATUS'.
+*
+*    WHEN 'A'. "Termination message
+*      MESSAGE 'This is an ABORT message' TYPE 'A'.
+**      MESSAGE a000(00) WITH 'This is a TERMINATION message'.
+*      WRITE: / 'This line will NOT be printed after TERMINATION'.
+*
+*    WHEN 'A'. "Exit message (Short-Dump)
+*      MESSAGE 'This is an EXIT message' TYPE 'X'.
+**      MESSAGE a000(00) WITH 'This is a TERMINATION message'.
+*      WRITE: / 'This line will NOT be printed after Dump'.
+*
+*    WHEN OTHERS.
+*      WRITE: / 'Invalid message type. Use E, W, I, S, X or A.'.
+*ENDCASE.
+
+
+****************************** Arithmetic operations
+PARAMETERS: p1    TYPE i OBLIGATORY DEFAULT 400,
+            p2    TYPE i DEFAULT 200 OBLIGATORY,
+            p_cb1 AS CHECKBOX,
+            p_cb2 AS CHECKBOX,
+            p_cb3 AS CHECKBOX,
+            p_cb4 AS CHECKBOX DEFAULT 'X',
+            p_cb5 AS CHECKBOX.
+
+DATA: total TYPE i.
+
+IF p_cb1 = 'X'.
+  total = p1 + p2.
+  WRITE:/ 'SUM is', total.
+ENDIF.
+
+IF p_cb2 = 'X'.
+  total = p1 - p2.
+  WRITE:/ 'Difference is', total.
+ENDIF.
+
+IF p_cb3 = 'X'.
+  total = p1 * p2.
+  WRITE:/ 'Multiplication is', total.
+ENDIF.
+
+IF p_cb4 = 'X'.
+  total = p1 / p2.
+  WRITE:/ 'Divison is', total.
+ENDIF.
+
+IF p_cb5 = 'X'.
+  total = sqrt( ( p1 + p2 ) * ( p1 - p2 ) ).
+  WRITE:/ total.
+ENDIF.
+
+**********************************************************************
+***MULTIPLE CHECKBOXES IN SINGLE LINE
+*SELECTION-SCREEN BEGIN OF LINE.
+*  SELECTION-SCREEN POSITION 3.
+*  PARAMETERS: p_chk1 AS CHECKBOX.
+**  SELECTION-SCREEN COMMENT 5(20) text-001 FOR FIELD p_chk1. "using selection text
+*  SELECTION-SCREEN COMMENT 5(20) label1 FOR FIELD p_chk1.   "using label to hardcode
+*
+*  PARAMETERS: p_chk2 AS CHECKBOX.
+**  SELECTION-SCREEN COMMENT 25(20) text-002 FOR FIELD p_chk2.
+*  SELECTION-SCREEN COMMENT 25(20) label2 FOR FIELD p_chk2.
+*
+*  PARAMETERS: p_chk3 AS CHECKBOX.
+**  SELECTION-SCREEN COMMENT 47(20) text-003 FOR FIELD p_chk3.
+*  SELECTION-SCREEN COMMENT 47(20) label3 FOR FIELD p_chk3.
+*SELECTION-SCREEN END OF LINE.
+*
+*INITIALIZATION.
+*label1 = 'Option 1'.
+*label2 = 'Option 2'.
+*label3 = 'Option 3'.
+
+
+**********************************************************************
+************ PUSHBUTTONS
+*TABLES: sscrfields.
+*
+*PARAMETERS: name1 TYPE string,
+*            name2 TYPE string,
+*            name3 TYPE string.
+*
+*DATA: lt_exclude TYPE TABLE OF rsexfcode, " Table structure for SET PF-STATUS
+*      ls_exclude TYPE rsexfcode.
+*
+**DATA: ful_nam TYPE string. "variable to store the FULL NAME
+*
+*SELECTION-SCREEN SKIP 3.
+*PARAMETERS: ful_nam TYPE string DEFAULT 'FULL NAME WILL DISPLAY' MODIF ID dis. "Parameter to display the Full name
+** While giving any MODIFY group, please make sure that the length should be 3-characters.
+*
+*SELECTION-SCREEN SKIP 2.  "If you don't write this, you'll get a ERROR. because if you'll not write this one,
+** the pushbutton will override the Input parameter and you will get the dump.
+*
+****** PUSHBUTTON in the selection-screen
+*SELECTION-SCREEN PUSHBUTTON 6(10) pb1 USER-COMMAND full.
+*SELECTION-SCREEN PUSHBUTTON 20(10) pb2 USER-COMMAND clear.
+*SELECTION-SCREEN PUSHBUTTON 34(10) pb3 USER-COMMAND exit.
+*
+********   CUSTOM PUSHBUTTON IN APPLICATION TOOLBAR
+*SELECTION-SCREEN FUNCTION KEY 1.  "Custom Pushbutton1
+*SELECTION-SCREEN FUNCTION KEY 2.  "Custom Pushbutton2
+*SELECTION-SCREEN FUNCTION KEY 3.  "Custom Pushbutton3
+*
+*INITIALIZATION.
+**  Custom Pushbuttons in SELECTION-SCREEN
+*  pb1 = 'FULL NAME'.
+*  pb2 = 'CLEAR'.
+*  pb3 = 'EXIT'.
+*  ls_exclude-fcode = 'ONLI'.  "Remove the Execute button from SELECTION-SCREEN
+*  APPEND ls_exclude TO lt_exclude.
+*
+*  ls_exclude-fcode = 'SJOB'.  " Execute in Background (Present in PROGRAM menu in MENUBAR)
+*  APPEND ls_exclude TO lt_exclude.
+*
+*  ls_exclude-fcode = 'PRIN'.  " Execute and Print (Present in PROGRAM menu in MENUBAR or PRINT icon in application toolbar)
+*  APPEND ls_exclude TO lt_exclude.
+*
+*  ls_exclude-fcode = 'SPOS'.  " Save as Variant
+*  APPEND ls_exclude TO lt_exclude.
+*
+**  Custom Pushbutton in Application Toolbar
+*  sscrfields-functxt_01 = 'ABAP DICTIONARY'.
+*  sscrfields-functxt_02 = 'ABAP EDITOR'.
+*  sscrfields-functxt_03 = 'OTHER REPOSITORY'.
+*
+*
+****TO disable the input for any fields, we have to make the SCREEN-INPUT = 0.
+*AT SELECTION-SCREEN OUTPUT.
+*  LOOP AT SCREEN.
+*    IF screen-group1 = 'DIS'.
+*      screen-input = 0. " to disable the input for the parameter
+*      MODIFY SCREEN.
+*    ENDIF.
+*  ENDLOOP.
+****  Call the function module to exclude the specified buttons from the toolbar
+*  CALL FUNCTION 'RS_SET_SELSCREEN_STATUS'
+*    EXPORTING
+*      p_status  = '%_00'  " It is the standard PF-STATUS for selection screens
+*      p_program = 'RSSYSTDB'   " It is the standard program containing the GUI status
+*    TABLES
+*      p_exclude = lt_exclude.  " Table for SET PF-STATUS with required buttons
+*
+*
+** whenever, the user will interact in the selection-screen using any pushbutton, then AT SELECTION-SCREEN Event will occur and
+** the respective user command will be captured by SY-UCOMM.
+*AT SELECTION-SCREEN.
+**  For Pushbuttons present in SELECTION-SCREEN
+*  CASE sy-ucomm.
+*    WHEN 'FULL'.
+*      CONCATENATE name1 name2 name3 INTO ful_nam SEPARATED BY ' '.
+*      MESSAGE | Your full name is { ful_nam } | TYPE 'I'. "always give space before and after variable
+**      EXIT.
+*
+*    WHEN 'CLEAR'.
+*      CLEAR: name1, name2, name3, ful_nam.
+*      ful_nam = 'FULL NAME WILL DISPLAY'. " to set the parameter with original text, after clearing.
+*
+*    WHEN 'EXIT'.
+*      LEAVE PROGRAM.
+*
+*    WHEN 'FC01'.    "Function code for the Function keys (buttons present in the application toolbar)
+*      CALL TRANSACTION 'SE11'.
+*    WHEN 'FC02'.
+*      CALL TRANSACTION 'SE38'.
+*
+*    WHEN OTHERS.
+*      CALL TRANSACTION 'SPRO'.
+*  ENDCASE.
+
+*  Pushbuttons in Application Toolbar (If you want to dispaly the buttons separately from the normal pushbuttons)
+*  CASE sscrfields-ucomm.
+*    WHEN 'FC01'.
+*      CALL TRANSACTION 'SE11'.
+*    WHEN 'FC02'.
+*      CALL TRANSACTION 'SE38'.
+*    WHEN OTHERS.
+*      CALL TRANSACTION 'SPRO'.
+*  ENDCASE.

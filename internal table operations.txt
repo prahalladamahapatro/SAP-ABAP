@@ -1,0 +1,137 @@
+*&---------------------------------------------------------------------*
+*& Report ZINTTBL_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zinttbl_u29.
+* Create a structure
+TYPES: BEGIN OF ty_dataele,
+         stu_id TYPE zstuidpm,
+         name   TYPE zstunamepm,
+         age    TYPE zagepm,
+       END OF ty_dataele.
+
+* create internal table and workarea
+
+* data <internal table> type table of <structure_name>
+* or data <itab> type standard table of <structure_name>
+* data <work area> type structure_name.
+
+*data : "lt_studetails TYPE TABLE of ty_dataele,
+*       wa_stud TYPE ty_dataele.
+
+*we can also create the internal with the help of "Table type"
+*syntax : table_type_name type table of str_name.
+*DATA : itab TYPE table_type_name.
+
+TYPES: tty_data TYPE TABLE OF ty_dataele.
+DATA: lt_studetails TYPE tty_data,
+      wa_stud       TYPE ty_dataele,
+      lv_num        TYPE int2.
+
+* assign value to work area :-
+wa_stud-stu_id = 1.
+wa_stud-name = 'PM'.
+wa_stud-age = 21.
+*** 1. append operation
+APPEND wa_stud TO lt_studetails.
+*** 7. clear and refresh operation is used to clear the contents of the internal table
+CLEAR wa_stud.
+*REFRESH wa_stud.
+
+wa_stud-stu_id = 2.
+wa_stud-name = 'CM'.
+wa_stud-age = 18.
+APPEND wa_stud TO lt_studetails.
+CLEAR wa_stud.
+
+wa_stud-stu_id = 3.
+wa_stud-name = 'SM'.
+wa_stud-age = 20.
+APPEND wa_stud TO lt_studetails.
+CLEAR wa_stud.
+
+wa_stud-stu_id = 5.
+wa_stud-name = 'Hari'.
+wa_stud-age = 22.
+APPEND wa_stud TO lt_studetails.
+CLEAR wa_stud.
+
+wa_stud-stu_id = 7.
+wa_stud-name = 'Radha'.
+wa_stud-age = 21.
+APPEND wa_stud TO lt_studetails.
+CLEAR wa_stud.
+
+wa_stud-stu_id = 4.
+wa_stud-name = 'Sita'.
+wa_stud-age = 20.
+APPEND wa_stud TO lt_studetails.
+CLEAR wa_stud.
+
+***6. Describe operation is used to display the number of rows present in a table
+DESCRIBE TABLE lt_studetails LINES lv_num.
+WRITE: 'The number of records in internal table are', lv_num.
+
+*SKIP 5.
+SELECTION-SCREEN: BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-069.
+
+*** 2. loop operation in internal table, to read the internal table line by line
+WRITE: /1(39) sy-uline.
+  LOOP AT lt_studetails INTO wa_stud.
+    WRITE :/ wa_stud-stu_id, 4 sy-vline, wa_stud-name,35 sy-vline, wa_stud-age, 39 sy-vline.
+    CLEAR wa_stud.
+    WRITE: /1(39) sy-uline.
+  ENDLOOP.
+
+***  8. sort operation is used to sort the table in ascending or descending order (the default sorting is ascending.
+* if want to perform sorting on multiple fields, then you have to specify the sorting operation for all the fields.
+*  SORT lt_studetails by stu_id DESCENDING.
+  SORT lt_studetails by age ASCENDING stu_id DESCENDING.
+* in the above statement, the table data will sorted based on age and if same age occurs, it will sort the records with stu_id.
+  WRITE:/ 'after the sorting and sub-sorting '.
+  WRITE: /1(39) sy-uline.
+  LOOP AT lt_studetails INTO wa_stud.
+    WRITE :/ wa_stud-stu_id, 4 sy-vline, wa_stud-name,35 sy-vline, wa_stud-age, 39 sy-vline.
+    CLEAR wa_stud.
+    WRITE: /1(39) sy-uline.
+  ENDLOOP.
+
+*** 3. delete operation to delete the rows based on condition or index
+*  DELETE lt_studetails WHERE name = 'PM' OR stu_id = 4.
+  DELETE lt_studetails INDEX 2.
+
+*** 4. to modify the record, pass the value to workarea then change in internal table
+*      modify is done with the help of 'transporting' keyword.
+  LOOP AT lt_studetails INTO wa_stud.
+    IF wa_stud-name = 'PM'.
+      wa_stud-name = 'Prahallada Mahapatro'.
+*      syntax: modify itab from wa_name transporting field_name. (here the field name is the modified field.
+      MODIFY lt_studetails FROM wa_stud TRANSPORTING name.
+    ENDIF.
+  ENDLOOP.
+
+  WRITE /'Data after modification, deletion'.
+  WRITE: /1(39) sy-uline.
+  LOOP AT lt_studetails INTO wa_stud.
+    WRITE :/ wa_stud-stu_id, 4 sy-vline, wa_stud-name,35 sy-vline, wa_stud-age, 39 sy-vline.
+    CLEAR wa_stud.
+    WRITE: /1(39) sy-uline.
+  ENDLOOP.
+
+*** 5. Read operation, is used to read the first matching row from the internal table
+*  READ TABLE lt_studetails INTO wa_stud WITH TABLE KEY stu_id = 1.
+* to perform the above code, the table mnust define a key.
+
+*  READ TABLE lt_tab INTO wa_stud WITH KEY field. " here the field may be a key field or non-keyfield.
+  READ TABLE lt_studetails INTO wa_stud WITH KEY age = 20. "It will return the 1st record whose age = 20.
+*  READ TABLE lt_studetails INTO wa_stud WITH KEY stu_id = 6.
+*  READ TABLE lt_studetails INTO wa_stud INDEX 4. "used to read the record present on index 4 in the internal table
+*  after read operation, always use the sy-subrc to check the value
+  IF sy-subrc = 0.
+    WRITE:/ wa_stud-stu_id, wa_stud-name, wa_stud-age.
+  ELSE.
+    WRITE: / 'No value for the read condition'.
+  ENDIF.
+
+SELECTION-SCREEN: END OF BLOCK b1.

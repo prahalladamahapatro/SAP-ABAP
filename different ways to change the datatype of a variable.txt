@@ -1,0 +1,34 @@
+*&---------------------------------------------------------------------*
+*& Report ZDEMO29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zdemo29.
+
+PARAMETERS: p_val TYPE konp-kbetr DEFAULT '0.00'. "input
+DATA: var2 TYPE char16.
+
+*Method - 1 & 2 (using WRITE and MOVE keyword)
+*move p_val to var2.
+*WRITE p_val to var2.
+
+
+* Method - 3 (Using CONV keyword)
+var2 = CONV char16( p_val ).
+
+
+*Method - 4 (Using alpha = in)
+*ALPHA = IN is used with the ' CONVERSION_EXIT_ALPHA_INPUT ' FM or the CONVERT statement to 'add leading zeros' to a value, so it matches the internal format
+*Currency fields like WAERS or amount fields ( type p decimals 2 ) don't use ALPHA conversion.
+**var2 = |{ p_val ALPHA = IN }|. "Invalid one
+**because, you can't write the format directive( ALPHA = IN ) inside the string Template( || ).
+**and ALPHA = IN only applies to character fields, and only when used directly on character variable, not on numeric types or expressions.
+
+
+CONDENSE var2.
+
+IF p_val = '0.00'.
+  var2 = 'NA'.
+ENDIF.
+
+WRITE: var2.

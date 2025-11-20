@@ -1,0 +1,32 @@
+*&---------------------------------------------------------------------*
+*& Report ZOUTPUTPRG_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zoutputprg_u29.
+WRITE 'Hello World'.
+
+DATA var TYPE string.
+var = 'HELLO/nWorld'.
+WRITE var.
+WRITE /.
+WRITE /'The above blank line is done'.
+WRITE /'with the help of'.
+WRITE /'forward slash(/)'.
+
+SKIP.
+WRITE : /'The above line is created with SKIP keyword',
+/'This is the example of chain operator'.
+
+SELECTION-SCREEN: BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
+  PARAMETERS: var1  TYPE c LENGTH 20, marks TYPE p DECIMALS 2 DEFAULT 13.
+SELECTION-SCREEN:END OF BLOCK b1.
+
+WRITE : /'hi',var1,'Welcome to ABAP programming',
+/ 'Your mark is ',marks.
+
+DATA : age TYPE i VALUE 21 .
+********************************************************************
+* NOTE: we can't use the "VALUES" keyword in "PARAMETER" and "DEFAULT" in "DATA".
+*       The "value" is used for variables and the "default" is used for selection-screen.
+**********************************************************************

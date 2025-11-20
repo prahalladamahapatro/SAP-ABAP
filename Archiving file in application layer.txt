@@ -1,0 +1,54 @@
+*&---------------------------------------------------------------------*
+*& Report ZFILHNDL6_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZFILHNDL6_U29.
+
+TYPES: BEGIN OF ty_emp,
+         emp_id     TYPE zemp_id_u29,
+         name       TYPE zempname_u29,
+         department TYPE zdepartment_u29,
+         join_date  TYPE zjoin_date_u29,
+       END OF ty_emp.
+
+DATA: lt_emp TYPE TABLE OF ty_emp,
+      wa_emp TYPE ty_emp.
+
+DATA: lv_srcfilepath(50) TYPE c VALUE 'F:\usr\sap\S4H\D34\data\order.txt'. "to store the source file path
+DATA: lv_dstnfilepath(50) TYPE c VALUE 'F:\usr\sap\S4H\SYS\src\order.txt'. "to store the destination file path
+DATA: lv_string TYPE string,
+      lv_date TYPE dats.
+
+OPEN DATASET lv_srcfilepath FOR INPUT IN TEXT MODE ENCODING DEFAULT.
+IF sy-subrc = 0.
+  DO.
+    READ DATASET lv_srcfilepath INTO lv_string.
+    IF sy-subrc = 0.
+      SPLIT lv_string AT '|' INTO wa_emp-emp_id wa_emp-name wa_emp-department wa_emp-join_date.
+      APPEND wa_emp TO lt_emp.
+      clear wa_emp.
+    ELSE.
+      EXIT.
+    ENDIF.
+  ENDDO.
+ENDIF.
+CLOSE DATASET lv_srcfilepath.
+
+
+OPEN DATASET lv_dstnfilepath FOR OUTPUT in TEXT MODE ENCODING DEFAULT.
+IF sy-subrc = 0.
+  LOOP AT lt_emp INTO wa_emp.
+    WRITE wa_emp-join_date to lv_date.
+    CONCATENATE wa_emp-emp_id wa_emp-name wa_emp-department lv_date INTO lv_string SEPARATED BY '|'.
+    TRANSFER lv_string TO lv_dstnfilepath.
+  ENDLOOP.
+
+  MESSAGE S004(ZMSG) WITH lv_dstnfilepath.
+ENDIF.
+CLOSE DATASET lv_dstnfilepath.
+
+DELETE DATASET lv_srcfilepath.
+IF sy-subrc = 0.
+  MESSAGE e000(G) WITH 'file deleted successfully'. "G is a dummy value
+ENDIF.

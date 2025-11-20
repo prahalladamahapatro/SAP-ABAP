@@ -1,0 +1,29 @@
+ZABSTRACT1_U29 - Abstract class program for u29
+
+*&---------------------------------------------------------------------*
+*& Report ZABSTRACT1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZABSTRACT1_U29.
+
+PARAMETERS p_vbeln TYPE vbeln_va.
+DATA: lverdat TYPE erdat,
+      lvernam TYPE ernam,
+      lverzet TYPE erzet,
+      lvvbtyp TYPE vbtypl.
+
+DATA lo_obj TYPE REF TO ZABSTRACT_SUB1_U29.
+CREATE OBJECT lo_obj.
+
+lo_obj->dsiplay( EXPORTING pvbeln = p_vbeln
+  IMPORTING perdat = lverdat
+    pernam = lvernam
+    perzet = lverzet
+    pvbtyp = lvvbtyp ) .
+
+IF sy-subrc <> 0.
+  MESSAGE E003(ZMSG) WITH p_vbeln.
+  else.
+    WRITE:/ lverdat, lvernam, lverzet, lvvbtyp.
+ENDIF.

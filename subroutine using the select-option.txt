@@ -1,0 +1,88 @@
+*&---------------------------------------------------------------------*
+*& Report ZSUBRTN3_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZSUBRTN3_U29.
+
+TABLES: vbak,vbap.
+
+* Declare structure for the tables
+TYPES: BEGIN OF ty_vbak,
+         vbeln TYPE vbeln,
+         ernam TYPE ernam,
+         erdat TYPE erdat,
+         erzet TYPE erzet,
+       END OF ty_vbak.
+
+TYPES: BEGIN OF ty_vbap,
+         vbeln TYPE vbeln,
+         posnr TYPE posnr,
+         matnr TYPE matnr,
+         posar TYPE posar, "Item type
+       END OF ty_vbap.
+
+TYPES: BEGIN OF ty_final,
+         vbeln TYPE vbeln,
+         erdat TYPE erdat,
+         ernam TYPE ernam,
+         erzet TYPE erzet,
+         posnr TYPE posnr,
+         matnr TYPE matnr,
+         posar TYPE posar,
+       END OF ty_final.
+
+*declaration of internal table and work area
+DATA: lt_vbak  TYPE TABLE OF ty_vbak,
+      wa_vbak  TYPE ty_vbak,
+
+      lt_vbap  TYPE TABLE OF ty_vbap,
+      wa_vbap  TYPE ty_vbap,
+
+      lt_final TYPE TABLE OF ty_final,
+      wa_final TYPE ty_final.
+
+select-OPTIONS so_num FOR vbak-vbeln.
+
+* to fetch data from vbak table with the help of perform statement
+*PERFORM get_vbak USING so_num CHANGING lt_vbak.
+* the above statement will give an error because "select-option is an internal table with header line.
+
+PERFORM get_vbak USING so_num[] CHANGING lt_vbak.
+
+* to fetch data from vbap table with the help of perform statement
+PERFORM get_vbap IN PROGRAM ZSUBRTN2_U29 USING lt_vbak CHANGING lt_vbap IF FOUND.
+
+* to fetch data from final table with the help of perform statement
+PERFORM get_final(ZSUBRTN2_U29) USING lt_vbak lt_vbap CHANGING lt_final.
+
+*Note: In this program we have npt created the subroutine for the lt_vbap and lt_final internal table, rather we use the final internal table.
+LOOP AT lt_final INTO wa_final.
+  WRITE:/ wa_final-vbeln, wa_final-ernam, wa_final-erdat, wa_final-matnr, wa_final-posnr.
+  clear wa_final.
+ENDLOOP.
+
+INCLUDE zbrtn3_u29_get_vbakf01.
+
+
+
+*----------------------------------------------------------------------*
+***INCLUDE ZBRTN3_U29_GET_VBAKF01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form get_vbak
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*&      --> SO_NUM[]
+*&      <-- LT_VBAK
+*&---------------------------------------------------------------------*
+FORM get_vbak  USING    p_so_num type zltt_slctopn
+               CHANGING p_lt_vbak TYPE zltt_vbak1.
+
+SELECT vbeln
+    ernam
+    erdat
+    erzet FROM vbak INTO TABLE p_lt_vbak WHERE vbeln in p_so_num.
+*  In where condition, don't use "eq" or "=". use in keyword.
+ENDFORM.

@@ -1,0 +1,91 @@
+*&---------------------------------------------------------------------*
+*& Report ZEMP_MAINTAIN_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zemp_maintain_u29.
+
+*To perform the below operation in "ZEMP_MASTER_U29" table
+*  1. ADD    2. DELETE     3. UPDATE   4. DISPLAY
+
+TABLES zemp_master_u29.
+* declare the structure with the help of data element
+
+SELECTION-SCREEN BEGIN OF LINE.
+  PARAMETERS : add RADIOBUTTON GROUP rb1.
+  SELECTION-SCREEN COMMENT (10) TEXT-001.
+
+  PARAMETERS : delete RADIOBUTTON GROUP rb1.
+  SELECTION-SCREEN COMMENT (10) TEXT-002.
+
+  PARAMETERS : update RADIOBUTTON GROUP rb1.
+  SELECTION-SCREEN COMMENT (10) TEXT-003.
+
+  PARAMETERS : display   RADIOBUTTON GROUP rb1.
+  SELECTION-SCREEN COMMENT (10) TEXT-004.
+SELECTION-SCREEN END OF LINE.
+
+SELECTION-SCREEN BEGIN OF BLOCK b2.
+  PARAMETERS : lv_empid TYPE zemp_id_u29,
+               lv_name  TYPE zempname_u29,
+               lv_dept  TYPE zdepartment_u29,
+               lv_jdate TYPE zjoin_date_u29.
+SELECTION-SCREEN END OF BLOCK b2.
+
+TYPES: BEGIN OF ty_zemp,
+         emp_id     TYPE zemp_id_u29,
+         name       TYPE zempname_u29,
+         department TYPE zdepartment_u29,
+         join_date  TYPE zjoin_date_u29,
+       END OF ty_zemp.
+
+DATA: lt_zemp TYPE TABLE OF zemp_master_u29,
+      wa_zemp TYPE zemp_master_u29,
+      wa_emp_demo TYPE zemp_master_u29,
+      lv_flag TYPE i VALUE 0.
+
+*DATA: lt_zemp     TYPE TABLE OF ty_zemp,
+*      wa_zemp     TYPE ty_zemp,
+*      wa_emp_demo TYPE ty_zemp,
+*      lv_flag     TYPE i VALUE 0.
+
+*FORM add_sub USING.
+*** to perform dispaly operation
+IF display = 'X'.
+  SELECT * FROM zemp_master_u29 INTO CORRESPONDING FIELDS OF TABLE lt_zemp.
+
+  LOOP AT lt_zemp INTO wa_zemp.
+    WRITE:/ wa_zemp-emp_id, wa_zemp-name, wa_zemp-department, wa_zemp-join_date.
+    CLEAR: wa_zemp.
+  ENDLOOP.
+
+***  To perform insert operation
+ELSEIF add = 'X'.
+  wa_zemp-emp_id = lv_empid.
+  wa_zemp-name = lv_name.
+  wa_zemp-department = lv_dept.
+  wa_zemp-join_date = lv_jdate.
+  SELECT * FROM zemp_master_u29 INTO CORRESPONDING FIELDS OF TABLE lt_zemp .
+  LOOP AT lt_zemp INTO wa_emp_demo.
+    IF wa_emp_demo-emp_id = lv_empid.
+      lv_flag = 1.
+    ENDIF.
+  ENDLOOP.
+
+  IF lv_flag EQ 0.
+    INSERT INTO zemp_master_u29 VALUES wa_zemp.
+    CLEAR wa_zemp.
+    WRITE 'Data inserted successfully.'.
+  ENDIF.
+
+*** to perform the delete operation
+ELSEIF delete = 'X' .
+  DELETE FROM zemp_master_u29 WHERE emp_id = lv_empid .
+  WRITE 'deleted sucessfully' .
+
+*** to perform update operation
+ELSEIF update = 'X' .
+  UPDATE zemp_master_u29 SET name = lv_name department = lv_dept join_date = lv_jdate WHERE emp_id  = lv_empid .
+  WRITE : 'updated sucessfully' .
+*  PERFORM add_sub.
+ENDIF.

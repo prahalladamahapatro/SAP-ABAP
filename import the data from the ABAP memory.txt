@@ -1,0 +1,49 @@
+*&---------------------------------------------------------------------*
+*& Report ZTEST1_2
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ztest1_2.
+
+DATA: v1     TYPE char50, " var1
+      wa_log TYPE zupdatelog_u29,
+      lt_log TYPE TABLE of zupdatelog_u29.
+
+*SUBMIT ztest1  AND RETURN.
+
+CALL FUNCTION 'ZTEST_IM' IN UPDATE TASK.
+COMMIT WORK AND WAIT.
+
+*import var1 FROM MEMORY ID 'MY_ID'.
+*import V1 FROM MEMORY ID 'AM1'. "var1
+
+SELECT * FROM zupdatelog_u29
+  INTO CORRESPONDING FIELDS OF TABLE lt_log
+  WHERE uname = sy-uname.
+
+LOOP AT lt_log INTO wa_log.
+  v1 = wa_log-message.
+ENDLOOP.
+
+WRITE:/ 'The below line is imported from the ztest1 program',
+/ 'Last time is', wa_log-timestamp,
+      / 'The message is', v1.
+
+
+
+*FAILS: The below ways we should not use
+*  1. SUBMIT prgm_name.
+*     import var1 FROM MEMORY ID 'MY_ID'.
+*  2. SUBMIT prgm_name.
+*     import var1 = var1 FROM MEMORY ID 'MY_ID'.
+
+
+*NOTE:
+*  Here we are using the concept of ABAP memory to pass the data between ABAP programs within the same internal session.
+*  Passing data to programs called, using the 'SUBMIT' or 'CALL TRANSACTION'.
+*  We can access the data using 'EXPORT TO MEMORY' and 'IMPORT FROM MEMORY'.
+
+*  We can also do it by using the concept of SAP MEMORY.
+*  If we will use SAP memory, the data will be available to all the main session within the SAP GUI.
+*  Passing data between different SAP programs within a session and filling input fields on screens.
+*  we can access the data using 'SET PARAMETER' and 'GET PARAMETER'.

@@ -1,0 +1,122 @@
+*&---------------------------------------------------------------------*
+*& Report ZMPP_EVENTS_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zmpp_events_u29.
+DATA zsh_emp_id_u29.
+
+TABLES : vbak.
+CALL SCREEN 100.
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0100  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0100 INPUT.
+
+  DATA okcode1 TYPE sy-ucomm.
+  IF okcode1 = 'BTN1'.
+    LEAVE TO SCREEN 200.
+
+  ELSEIF okcode1 = 'BTN2'.
+    LEAVE PROGRAM.
+
+  ENDIF.
+ENDMODULE.
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0200  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0200 INPUT.
+
+  DATA okcode2 TYPE sy-ucomm.
+  IF okcode2 = 'BTN5'.
+    CALL SCREEN 300.
+*    SET SCREEN 300.
+
+  ELSEIF okcode2 = 'BTN3'.
+    SET SCREEN 100.
+
+  ENDIF.
+ENDMODULE.
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0300  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0300 INPUT.
+  DATA okcode3 TYPE sy-ucomm.
+  IF okcode3 = 'BTN4'.
+*    LEAVE PROGRAM.
+    SET SCREEN 0.
+*    LEAVE SCREEN.
+"it will not go to any other screen as by default, the NEXT DYNPRO is always the same screen number. So, it will not go to other screen.
+
+  ENDIF.
+ENDMODULE.
+
+INCLUDE zmpp_events_u29_pov_modi01.
+
+INCLUDE zmpp_events_u29_poh_modi01.
+
+*----------------------------------------------------------------------*
+***INCLUDE ZMPP_EVENTS_U29_POV_MODI01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Module  POV_MOD  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE pov_mod INPUT.
+SELECT EMP_ID, NAME FROM ZEMP_MASTER_U29 INTO TABLE @DATA(lt_tab) UP TO 10 ROWS.
+
+  CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+    EXPORTING
+*     DDIC_STRUCTURE         = ' '
+      retfield               = 'EMP_ID'
+*     PVALKEY                = ' '
+     DYNPPROG               = SY-repid
+     DYNPNR                 = SY-dynnr
+     DYNPROFIELD            = 'SHINPFLD' "pass the name of the i/o field that u have used it as the search help, i.e. for which field you have to use the F4 help
+*     STEPL                  = 0
+*     WINDOW_TITLE           =
+*     VALUE                  = ' '
+     VALUE_ORG              = 'S'
+*     MULTIPLE_CHOICE        = ' '
+*     DISPLAY                = ' '
+*     CALLBACK_PROGRAM       = ' '
+*     CALLBACK_FORM          = ' '
+*     CALLBACK_METHOD        =
+*     MARK_TAB               =
+*   IMPORTING
+*     USER_RESET             =
+    tables
+      value_tab              = lt_tab
+*     FIELD_TAB              =
+*     RETURN_TAB             =
+*     DYNPFLD_MAPPING        =
+   EXCEPTIONS
+     PARAMETER_ERROR        = 1
+     NO_VALUES_FOUND        = 2
+     OTHERS                 = 3
+            .
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+ENDMODULE.
+
+
+*----------------------------------------------------------------------*
+***INCLUDE ZMPP_EVENTS_U29_POH_MODI01.
+*----------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*&      Module  POH_MOD  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE poh_mod INPUT.
+SET SCREEN 400.
+ENDMODULE.

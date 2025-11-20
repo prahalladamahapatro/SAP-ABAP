@@ -1,0 +1,55 @@
+*&---------------------------------------------------------------------*
+*& Report ZTEZTPM4
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zteztpm4.
+
+TABLES: zbooks1.
+
+***** DROPDOWN MENU (LISTBOX)
+PARAMETERS: p1 AS LISTBOX VISIBLE LENGTH 15.  "After selecting an option from the dropdown list, it will display that many no. of characters (length) in that field
+
+***** Define the Strcture (What are the fields you want to display)
+TYPES: BEGIN OF ty_book,
+         book_id   TYPE zbid_dl,
+         book_name TYPE zbname_de,
+       END OF ty_book.
+
+***** Define the workarea and internal table to store the data to display in LISTBOX
+DATA: wa_book TYPE ty_book,
+      it_book TYPE TABLE OF ty_book,
+      wa_vrm  TYPE vrm_value,
+      it_vrm  TYPE vrm_values,
+      vrm_id  TYPE vrm_id.
+
+
+AT SELECTION-SCREEN OUTPUT. "This event is MANDATORY
+***** To Display the dropdown list in the selection-screen
+  SELECT bid, bname FROM zbooks1 INTO TABLE @it_book.
+
+  IF it_book IS NOT INITIAL.
+    LOOP AT it_book INTO wa_book.
+      wa_vrm-key = wa_book-book_id.
+      wa_vrm-text = wa_book-book_name.  "This field values will be displayed in the dropdown list
+      APPEND wa_vrm TO it_vrm.
+      CLEAR wa_vrm.
+    ENDLOOP.
+  ENDIF.
+
+  vrm_id = 'P1'.  "Here we will assign the ID of our INPUT field (PARAMETER NAME)
+
+***  Call the VRM_SET_VALUES Function module to set the values for the DROPDOWN LIST
+  CALL FUNCTION 'VRM_SET_VALUES'
+    EXPORTING
+      id              = vrm_id  "Where to use the DROPDOWN LIST
+      values          = it_vrm  "What values you want to display in the DROPDOWN LIST
+    EXCEPTIONS
+      id_illegal_name = 1
+      OTHERS          = 2.
+
+  IF sy-subrc <> 0.
+    MESSAGE 'Either Invalid ID or some other Exception has occured' TYPE 'I'.
+  ENDIF.
+
+* NOTE: It is mandatory to write the code for creating a dropdown list in the AT SELECTION-SCREEN OUTPUT event because this event is *triggered before the selection screen is displayed to the user, allowing for dynamic modification of the screen's elements.

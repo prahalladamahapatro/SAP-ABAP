@@ -1,0 +1,83 @@
+*&---------------------------------------------------------------------*
+*& Report ZEXCEL2ITAB_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zexcel2itab1_u29.
+
+TYPE-POOLS truxs.
+
+* used to give the file path from the device
+PARAMETERS: p_file TYPE rlgrap-filename.
+
+TYPES: BEGIN OF ty_emp,
+         clnt   TYPE clnt31,
+         empid  TYPE zemp_id_u29,
+         ename  TYPE zempname_u29,
+         dept   TYPE zdepartment_u29,
+         joindt TYPE zjoin_date_u29,
+       END OF ty_emp.
+
+DATA: lt_emp TYPE TABLE OF ty_emp,
+      wa_emp TYPE ty_emp,
+
+      lt_raw TYPE truxs_t_text_data. "--> table type of raw data
+
+* to give F4 help to choose the file from the device
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_file.
+  CALL FUNCTION 'F4_FILENAME'
+    EXPORTING
+*     PROGRAM_NAME        = SYST-CPROG
+*     DYNPRO_NUMBER       = SYST-DYNNR
+      field_name = 'p_file'
+    IMPORTING
+      file_name  = p_file.
+
+  CALL FUNCTION 'TEXT_CONVERT_XLS_TO_SAP'
+    EXPORTING
+*     I_FIELD_SEPERATOR    =
+      i_line_header        = 'X'
+      i_tab_raw_data       = lt_raw
+      i_filename           = p_file
+    TABLES
+      i_tab_converted_data = lt_emp[]
+    EXCEPTIONS
+      conversion_failed    = 1
+      OTHERS               = 2.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+*IF lt_emp[] is NOT INITIAL.
+*  LOOP AT lt_emp INTO wa_emp.
+*    WRITE:/ wa_emp-clnt, wa_emp-empid, wa_emp-ename, wa_emp-dept, wa_emp-joindt.
+*    CLEAR wa_emp.
+*  ENDLOOP.
+*ENDIF.
+*
+*end-OF-SELECTION.
+  TYPES: BEGIN OF zBarry_upload,
+           clnt   TYPE clnt31,
+           empid  TYPE zemp_id_u29,
+           ename  TYPE zempname_u29,
+           dept   TYPE zdepartment_u29,
+           joindt TYPE zjoin_date_u29,
+         END OF zBarry_upload.
+  DATA : wa_cc_imp1 TYPE zBarry_upload,
+         lt_cc_imp1 TYPE STANDARD TABLE OF zBarry_upload.
+
+  LOOP AT lt_emp INTO wa_emp.
+    wa_cc_imp1-clnt = wa_emp-clnt.
+    wa_cc_imp1-empid = wa_emp-empid.
+    wa_cc_imp1-ename = wa_emp-ename.
+    wa_cc_imp1-dept = wa_emp-dept.
+    wa_cc_imp1-joindt = wa_emp-joindt.
+
+    APPEND wa_cc_imp1 TO lt_cc_imp1.
+    CLEAR wa_cc_imp1.
+  ENDLOOP.
+
+  LOOP AT lt_cc_imp1 INTO wa_cc_imp1.
+    WRITE:/ wa_cc_imp1-clnt, wa_cc_imp1-empid, wa_cc_imp1-ename, wa_cc_imp1-dept, wa_cc_imp1-joindt.
+    CLEAR wa_cc_imp1.
+  ENDLOOP.

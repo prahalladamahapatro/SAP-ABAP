@@ -1,0 +1,117 @@
+*&---------------------------------------------------------------------*
+*& Report ZASSIGN6_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zassign6_u29.
+
+PARAMETERS: p_inpt1 TYPE int2,
+            p_inpt2 TYPE int2.
+
+DATA: lv_add TYPE int4,
+      lv_sub TYPE int4,
+      lv_mul TYPE int4,
+      lv_div TYPE int2.
+
+* In this program, we are calling the function, giving the import parameters and get the output
+* we don't write the logic here.
+* The parameters which are in exporting part in a program, usually they are the importing parameters of a function module and vice-veersa.
+
+CALL FUNCTION 'ZADD_U29'
+* in exporting, the data flows from right to left
+  EXPORTING
+    p_int1 = p_inpt1
+    p_int2 = p_inpt2
+*   in importing, the data flows from left to write
+  IMPORTING
+    output = lv_add.
+
+CALL FUNCTION 'ZSUB_U29'
+  EXPORTING
+    pinput1 = p_inpt1
+    pinput2 = p_inpt2
+  IMPORTING
+    poutput = lv_sub.
+
+CALL FUNCTION 'ZMUL_U29'
+  EXPORTING
+    pinput1 = p_inpt1
+    pinput2 = p_inpt2
+  IMPORTING
+    pmul    = lv_mul.
+
+CALL FUNCTION 'ZDIV_U29'
+  EXPORTING
+    pinput1         = p_inpt1
+    pinput2         = p_inpt2
+  IMPORTING
+    pdiv            = lv_div
+  EXCEPTIONS
+    notzerodivision = 1
+    OTHERS          = 2.
+IF sy-subrc <> 0.
+* Implement suitable error handling here
+  MESSAGE e000(zmsg).
+ELSE.
+  WRITE:/ 'the division of 2 numbers are', lv_div.
+ENDIF.
+
+
+WRITE:/ 'the Sum of 2 numbers are', lv_add.
+WRITE:/ 'the Subtraction of 2 numbers are', lv_sub.
+WRITE:/ 'the multiplication of 2 numbers are', lv_mul.
+
+
+FUNCTION ZADD_U29.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(P_INT1) TYPE  INT2 DEFAULT 50
+*"     REFERENCE(P_INT2) TYPE  INT2 DEFAULT 30
+*"  EXPORTING
+*"     REFERENCE(OUTPUT) TYPE  INT4
+*"----------------------------------------------------------------------
+
+output = p_int1 + p_int2.
+
+ENDFUNCTION.
+
+
+FUNCTION ZSUB_U29.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(PINPUT1) TYPE  INT2
+*"     REFERENCE(PINPUT2) TYPE  INT2
+*"  EXPORTING
+*"     REFERENCE(POUTPUT) TYPE  INT4
+*"----------------------------------------------------------------------
+
+
+POUTPUT = PINPUT1 - PINPUT2.
+
+
+ENDFUNCTION.
+
+
+FUNCTION ZDIV_U29.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(PINPUT1) TYPE  INT2
+*"     REFERENCE(PINPUT2) TYPE  INT2
+*"  EXPORTING
+*"     REFERENCE(PDIV) TYPE  INT2
+*"  EXCEPTIONS
+*"      NOTZERODIVISION
+*"----------------------------------------------------------------------
+
+IF pinput2 = 0.
+  RAISE NOTZERODIVISION.
+
+  ELSE.
+    pdiv = pinput1 / pinput2.
+ENDIF.
+
+
+ENDFUNCTION.

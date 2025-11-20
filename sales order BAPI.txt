@@ -1,0 +1,17 @@
+*&---------------------------------------------------------------------*
+*& Report ZSALESBAPI_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZSALESBAPI_U29.
+
+DATA: order_text type TABLE of BAPISDTEXT with header line.
+PARAMETERS: lv_vbeln TYPE vbeln_va.
+
+order_text-doc_number = lv_vbeln.
+order_text-itm_number = '000025'.
+order_text-text_id = '0002'.
+order_text-langu = sy-langu.
+order_text-format_col = '*'.
+order_text-text_line = 'ITEM VALUE'.
+append order_text.

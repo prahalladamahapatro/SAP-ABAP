@@ -1,0 +1,77 @@
+*&---------------------------------------------------------------------*
+*& Report ZOOPALV1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zoopalv1_u29.
+
+PARAMETERS: p_vbeln TYPE vbeln_va.
+
+* declaration of export parameters
+data: lv_erdat TYPE erdat,
+      lv_erzet TYPE erzet,
+      lv_ernam TYPE ernam,
+      lv_vbtyp TYPE vbtypl.
+
+**********************************************************************
+*2. FOR STATIC METHOD
+**********************************************************************
+CALL METHOD zusual_class_u29=>static_display
+  EXPORTING
+    pvbeln       = p_vbeln
+  IMPORTING
+    perdat       = lv_erdat
+    perzet       = lv_erzet
+    pernam       = lv_ernam
+    pvbtyp       = lv_vbtyp
+  EXCEPTIONS
+    invalidinput = 1
+    others       = 2
+        .
+IF sy-subrc <> 0.
+* Implement suitable error handling here
+  MESSAGE E002(ZMSG) WITH p_vbeln.
+  ELSE.
+    WRITE:/ lv_ernam, lv_erdat, lv_erzet, lv_vbtyp.
+ENDIF.
+
+
+**********************************************************************
+*1. FOR INSTANCE METHOD
+**********************************************************************
+* declaration of object
+*DATA: lv_obj TYPE REF TO zusual_class_u29.
+* Instantiation of the object
+*CREATE OBJECT lv_obj.
+*
+** If you execute the program without creating the object, then you will get a runtime error "OBJECTS OBJREF NOT ASSIGNED".
+*
+** declaration the object
+*CALL METHOD lv_obj->dispaly
+*  EXPORTING
+*    pvbeln       = p_vbeln
+*  importing
+*    perdat       = lv_erdat
+*    perzet       = lv_erzet
+*    pernam       = lv_ernam
+*    pvbtyp       = lv_vbtyp
+*  EXCEPTIONS
+*    invalidinput = 1
+*    OTHERS       = 2.
+*
+** suppose i'll give a wrong input in the parameter, then the exception will raise and
+**then the sy-subrc will be equal to the number given to the exception.
+*
+*IF sy-subrc <> 0.
+**Implement suitable error handling here
+*  MESSAGE E002(ZMSG) WITH p_vbeln.
+*  ELSE.
+*    WRITE:/ lv_ernam, lv_erdat, lv_erzet, lv_vbtyp.
+*ENDIF.
+
+**********************************************************************
+*NOTE:
+*-> signify that the method is an instance method.
+*=> signify that the method is a static method.
+**********************************************************************
+*If you will not make your method public, then will not be accesses from outside of the class.

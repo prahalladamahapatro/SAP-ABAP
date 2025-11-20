@@ -1,0 +1,122 @@
+*&---------------------------------------------------------------------*
+*& Report ZOOPALV7_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zoopalv7_u29.
+
+CLASS animal DEFINITION.
+  PUBLIC SECTION.
+    METHODS: speak.
+ENDCLASS.
+
+CLASS animal IMPLEMENTATION.
+  METHOD speak.
+    WRITE:/ 'Animal Sounds '.
+  ENDMETHOD.
+ENDCLASS.
+
+CLASS dog DEFINITION INHERITING FROM animal.
+  PUBLIC SECTION.
+    METHODS: speak REDEFINITION.
+ENDCLASS.
+
+CLASS dog IMPLEMENTATION.
+  METHOD speak.
+    WRITE:/ 'The dog is barking inside the dog class'.
+    WRITE:/ 'this is called using super keyword'.
+    super->speak( ).
+  ENDMETHOD.
+ENDCLASS.
+
+START-OF-SELECTION.
+
+DATA: lo_animal TYPE REF TO animal.
+CREATE OBJECT lo_animal.
+lo_animal->speak( ).
+
+DATA: lo_dog TYPE REF TO dog.
+CREATE OBJECT lo_dog.
+lo_dog->speak( ).
+
+
+---------------------------------------------------------------------------------
+Using Global class concept
+----------------------------------------------
+*&---------------------------------------------------------------------*
+*& Report ZOOPALV8_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zoopalv8_u29.
+
+CLASS dog DEFINITION INHERITING FROM zpolyanimal_class_u29.
+  PUBLIC SECTION.
+    METHODS: speak REDEFINITION.
+
+ENDCLASS.
+
+CLASS dog IMPLEMENTATION.
+  METHOD: speak.
+    WRITE:/ 'The dog is barking inside the dog class'.
+    WRITE:/ 'The animal method is called'.
+    super->speak( ).
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS cat DEFINITION INHERITING FROM zpolyanimal_class_u29.
+  PUBLIC SECTION.
+    METHODS: speak REDEFINITION.
+
+ENDCLASS.
+
+CLASS cat IMPLEMENTATION.
+  METHOD: speak.
+    WRITE:/ 'The cat is meowing inside the cat class'.
+    WRITE:/ 'The animal method is called'.
+    super->speak( ).
+  ENDMETHOD.
+ENDCLASS.
+
+CLASS puppy DEFINITION INHERITING FROM dog.
+  PUBLIC SECTION.
+    METHODS: speak REDEFINITION, sleep.
+
+ENDCLASS.
+
+CLASS puppy IMPLEMENTATION.
+  METHOD: speak.
+    WRITE:/ 'The puppy is crying inside the puppy class'.
+    WRITE:/ 'The dog method is called'.
+    super->speak( ).
+  ENDMETHOD.
+
+  METHOD: sleep.
+    WRITE:/ 'The puppy is sleeping'.
+  ENDMETHOD.
+ENDCLASS.
+
+START-OF-SELECTION.
+
+  DATA: lv_obj TYPE REF TO dog.
+  CREATE OBJECT lv_obj.
+  lv_obj->speak( ).
+
+  SKIP.
+
+  DATA: lv_obj1 TYPE REF TO cat.
+  CREATE OBJECT lv_obj1.
+  lv_obj1->speak( ).
+
+  SKIP.
+
+  DATA: lv_obj2 TYPE REF TO puppy.
+  CREATE OBJECT lv_obj2.
+  lv_obj2->sleep( ).
+  lv_obj2->speak( ).
+
+
+  method SPEAK.
+    WRITE:/ 'This is ANIMAL class speaking method'.
+  endmethod.

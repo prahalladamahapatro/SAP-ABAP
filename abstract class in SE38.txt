@@ -1,0 +1,50 @@
+zabstract3_u29 - Abstract class creation in se38
+
+
+*&---------------------------------------------------------------------*
+*& Report ZABSTRACT3_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zabstract3_u29.
+
+PARAMETERS p_vbeln TYPE vbeln_va.
+
+DATA: lv_erdat TYPE redat,
+      lv_ernam TYPE ernam,
+      lv_erzet TYPE erzet,
+      lv_vbtyp TYPE vbtypl.
+
+CLASS abstract_cl DEFINITION ABSTRACT.
+  PUBLIC SECTION.
+    METHODS display ABSTRACT IMPORTING pvbeln TYPE vbeln_va
+                    EXPORTING perdat TYPE erdat
+                              pernam TYPE ernam
+                              perzet  TYPE erzet
+                              pvbtyp TYPE vbtypl.
+ENDCLASS.
+
+CLASS sub_cls DEFINITION INHERITING FROM abstract_cl.
+  PUBLIC SECTION.
+    METHODS display REDEFINITION.
+ENDCLASS.
+
+CLASS sub_cls IMPLEMENTATION.
+  METHOD: display.
+    select SINGLE erdat ernam erzet vbtyp from vbak
+      INTO ( perdat, pernam, perzet, pvbtyp )
+      WHERE vbeln = pvbeln.
+
+      WRITE:/ lv_erdat, lv_ernam, lv_erzet, lv_vbtyp.
+  ENDMETHOD.
+ENDCLASS.
+
+START-OF-SELECTION.
+DATA: lo_obj TYPE REF TO sub_cls.
+CREATE OBJECT lo_obj.
+
+lo_obj->display( EXPORTING pvbeln = p_vbeln
+  IMPORTING perdat = lv_erdat
+    pernam = lv_ernam
+    perzet = lv_erzet
+    pvbtyp = lv_vbtyp ).

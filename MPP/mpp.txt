@@ -1,0 +1,41 @@
+MODULE user_command_0332 INPUT.
+  CASE okcode.
+    WHEN 'BTN1'. "SUBSCREEN 1
+      SELECT SINGLE * FROM zemp_master_u29 INTO @DATA(lt_data)
+       WHERE emp_id = @zemp_master_u29-emp_id.
+
+      zemp_master_u29-emp_id = lt_data-emp_id.
+      zemp_master_u29-name = lt_data-name.
+      zemp_master_u29-department = lt_data-department.
+      zemp_master_u29-join_date = lt_data-join_date.
+
+    WHEN 'BTN2'. "SUBSCREEN 2
+      SELECT * from ZLEAVE_QRSTU29 INTO CORRESPONDING FIELDS OF TABLE lt_lev
+        WHERE emp_id = zemp_master_u29-emp_id.
+    WHEN 'BTN3'.
+      LEAVE TO TRANSACTION 'SE80'.
+    WHEN 'BTN2'.
+      SELECT * FROM ZLEAVE_QRSTU29 INTO CORRESPONDING FIELDS OF TABLE lt_lea
+        WHERE emp_id = zemp_master_u29-emp_id.
+        call SCREEN 0482 STARTING AT 10 20
+                          ENDING AT 70 30.
+*    WHEN OTHERS.
+  ENDCASE.
+ENDMODULE.
+
+* Main program
+TABLES:zemp_master_u29, zleave_qrstu29.
+
+TYPES: BEGIN OF ty_lea,
+         rqst_id    TYPE   zrqst_id_u29,
+         emp_id     TYPE  zemp_id_u29,
+         leave_type TYPE  zleave_type_u29,
+         strt_dt    TYPE  zstrt_date_u29,
+         end_dt     TYPE  zend_date_u29,
+         status     TYPE  zstatus_u29,
+       END OF ty_lea.
+
+DATA: lt_lea TYPE TABLE OF ty_lea,
+      wa_lea TYPE ty_lea.
+DATA: "ZEMP_MASTER_U29-EMP_ID type ZEMP_ID_U29,
+      ok_code TYPE sy-ucomm.

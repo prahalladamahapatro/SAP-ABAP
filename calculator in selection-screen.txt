@@ -1,0 +1,42 @@
+*&---------------------------------------------------------------------*
+*& Report ZCALC_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zcalc_u29.
+
+SELECTION-SCREEN : BEGIN OF BLOCK b1 WITH FRAME TITLE text001.
+  PARAMETERS : num1 TYPE i OBLIGATORY,
+*               op   TYPE c LENGTH 3 OBLIGATORY,
+               num2 TYPE i OBLIGATORY.
+SELECTION-SCREEN : END OF BLOCK b1.
+
+* Variables used to store the result
+DATA: diff    TYPE i,
+      sum     TYPE i,
+      product TYPE i,
+      div     TYPE i,
+      mod     TYPE i.
+
+* Operation to be performed and stored in the variable
+  sum = num1 + num2.
+  diff  = num1 - num2.
+  product = num1 * num2.
+  div = num1 / num2.
+  mod = num1 MOD num2.
+
+WRITE: 'The sum, diff, product, div, mod of the 2 numbers are'.
+WRITE: / sum, diff, product, div, mod.
+*
+*IF op = 'add'.
+*  WRITE : 'addition of the following number is ', sum.
+*ELSEIF op = 'sub'.
+*  WRITE : 'subtraction of the following number is ', diff.
+*ELSEIF op = 'mul'.
+*  WRITE : 'product of the following number is ', product.
+*ELSEIF op = 'div'.
+*  WRITE : 'division of the following number is ', div.
+*ELSEIF op = 'mod'.
+*  WRITE : 'modulus of the following number is ', mod.
+*
+*ENDIF.

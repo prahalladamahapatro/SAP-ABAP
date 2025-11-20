@@ -1,0 +1,94 @@
+*&---------------------------------------------------------------------*
+*& Report ZOOPALV4_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zoopalv4_u29.
+
+TABLES: vbak,vbap.
+
+SELECT-OPTIONS s_vblen FOR vbak-vbeln.
+
+DATA: final_data TYPE zltt_final1,
+      wa_final   TYPE zstrfinal1_u29.
+
+DATA: lv_obj TYPE REF TO zusual_class2_u29.
+CREATE OBJECT lv_obj.
+
+CALL METHOD lv_obj->get_data
+  EXPORTING
+    svbeln   = s_vblen[]
+*    don't write s_vbeln because select-option is a internal table with header-line and always pass the body using[].
+  IMPORTING
+    lt_final = final_data.
+
+LOOP AT final_data INTO wa_final.
+  WRITE:/ wa_final-vbeln ,
+          wa_final-ernam ,
+          wa_final-erdat ,
+          wa_final-erzet ,
+          wa_final-posnr ,
+          wa_final-matnr ,
+          wa_final-posar .
+ENDLOOP.
+
+  METHOD get_data.
+    TYPES: BEGIN OF ty_vbak,
+             vbeln TYPE vbeln_va,
+             erdat TYPE erdat,
+             ernam TYPE ernam,
+             erzet TYPE erzet,
+           END OF ty_vbak.
+
+    TYPES: BEGIN OF ty_vbap,
+             vbeln TYPE vbeln_va,
+             posnr TYPE posnr_va,
+             matnr TYPE matnr,
+             posar TYPE posar,
+           END OF ty_vbap.
+
+*           decalration of itab and work area for vbak table
+    DATA: lt_vbak       TYPE TABLE OF ty_vbak,
+          wa_vbak       TYPE ty_vbak,
+
+*      declaration of itab and worka rea for vbap table
+          lt_vbap       TYPE TABLE OF ty_vbap,
+          wa_vbap       TYPE ty_vbap,
+
+*           decalration of itab and work area for final table
+*          final_data TYPE zltt_final1, "No need to declare the itab again here because we have created in the parameter tab
+          wa_final_data TYPE zstrfinal1_u29.
+
+    SELECT * FROM vbak INTO CORRESPONDING FIELDS OF TABLE lt_vbak
+      WHERE vbeln IN svbeln.
+
+    IF lt_vbak[] IS NOT INITIAL.
+      SELECT * FROM vbap INTO CORRESPONDING FIELDS OF TABLE lt_vbap
+        FOR ALL ENTRIES IN lt_vbak
+        WHERE vbeln = lt_vbak-vbeln.
+    ENDIF.
+
+    LOOP AT lt_vbak INTO wa_vbak.
+      wa_final_data-vbeln = wa_vbak-vbeln.
+      wa_final_data-ernam = wa_vbak-ernam.
+      wa_final_data-erdat = wa_vbak-erdat.
+      wa_final_data-erzet = wa_vbak-erzet.
+      LOOP AT lt_vbap INTO wa_vbap.
+        wa_final_data-posnr = wa_vbap-posnr.
+        wa_final_data-matnr = wa_vbap-matnr.
+        wa_final_data-posar = wa_vbap-posar.
+      ENDLOOP.
+      APPEND wa_final_data TO lt_final.
+      CLEAR wa_final_data.
+    ENDLOOP.
+
+*    LOOP AT lt_final INTO wa_final_data.
+*      WRITE:/ wa_final_data-vbeln ,
+*              wa_final_data-ernam ,
+*              wa_final_data-erdat ,
+*              wa_final_data-erzet ,
+*              wa_final_data-posnr ,
+*              wa_final_data-matnr ,
+*              wa_final_data-posar .
+*    ENDLOOP.
+  ENDMETHOD.

@@ -1,0 +1,43 @@
+
+*&---------------------------------------------------------------------*
+*& Report ZSTRWA_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zstrwa_u29.
+*Decalring a structure in 3 different ways
+
+PARAMETERS: emp_id     TYPE i,
+            emp_name   TYPE c LENGTH 30,
+            emp_age(2) TYPE i.
+
+* 1. Creating our own structure using default datatypes
+TYPES: BEGIN OF ty_custstr,
+         id   TYPE i,
+         name TYPE c,
+         age  TYPE i,
+       END OF ty_custstr.
+
+* 2. Creating structure using dataelement
+TYPES: BEGIN OF ty_dataele,
+         stu_id TYPE zstuidpm,
+         name   TYPE zstunamepm,
+         age    TYPE zagepm,
+       END OF ty_dataele.
+
+* 3. creating structure with standard table-field name
+* to do this we have to import the table name and give reference
+TYPES: BEGIN OF ty_tabfld,
+         matnr TYPE mara-matnr,
+         matkl TYPE mara-matkl,
+         aenam TYPE mara-aenam,"name of person who changed the object
+         brand TYPE mara-brand_id, "brand
+       END OF ty_tabfld.
+
+*Declaration of work area and internal table
+data: lt_itab1 TYPE TABLE of ty_custstr,
+      lt_itab2 TYPE TABLE of ty_dataele,
+      lt_itab3 TYPE TABLE of ty_tabfld,
+      wa_custwa1 TYPE ty_custstr,
+      wa_custwa2 TYPE ty_dataele,
+      wa_custwa3 TYPE ty_tabfld.

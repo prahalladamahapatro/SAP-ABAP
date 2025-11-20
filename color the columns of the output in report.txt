@@ -1,0 +1,50 @@
+*&---------------------------------------------------------------------*
+*& Report ZTBLTSK1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZTBLTSK1_U29 NO STANDARD PAGE HEADING.
+
+
+*Declare the table from where u want the data
+TABLES VBAK.
+
+*Declare the structure
+TYPES: BEGIN OF ty_VBAK_ele,
+  VBELN TYPE VBELN_VA,  "Sales Document
+  ERNAM TYPE ERNAM, "Name of Person who Created the Object
+  ERDAT TYPE ERDAT, "Date on which the record was created
+  ERZET TYPE ERZET, "Entry Time
+  SUBMI TYPE SUBMI_SD,  "Collective Number (SD)
+  VKGRP TYPE VKGRP, "Sales Group
+  VKBUR TYPE VKBUR, "Sales office
+  GSBER TYPE gsber, "Business Area
+  BSTNK TYPE BSTNK, "Customer Reference
+  BSARK TYPE BSARK, "Customer Purchase Order Type
+  BSTDK TYPE BSTDK, "Customer Reference Date
+  BSTZD TYPE BSTZD, "Purchase order number supplement
+  END OF ty_vbak_ele.
+
+* Declare the Internal table and workarea.
+  Data: lt_VBAK TYPE TABLE of ty_vbak_ele,
+        wa_vbak TYPE ty_vbak_ele,
+        lv_num TYPE i.
+
+*to add the data into internal table
+*LOOP AT lt_vbak INTO wa_vbak.
+*  APPEND wa_vbak TO lt_vbak.
+*ENDLOOP.
+*select VBELN, ERNAM, ERDAT, ERZET, SUBMI, VKGRP, BSARK FROM VBAK INTO TABLE @lt_vbak.
+select VBELN, ERNAM, ERDAT, ERZET, SUBMI, VKGRP FROM VBAK INTO TABLE @lt_vbak GROUP BY vbeln,ERNAM, ERDAT, ERZET, SUBMI, VKGRP.
+*  to give "group by" clause into a table, we have to give all the fields name(mentioned in the select query) in the group by clause.
+
+DESCRIBE TABLE lt_vbak LINES lv_num.
+WRITE: 'The number of rows present in VBAK are:', lv_num.
+* to display the data
+LOOP AT lt_vbak INTO wa_vbak.
+  WRITE:/ wa_vbak-vbeln COLOR 3, wa_vbak-ernam COLOR 5, wa_vbak-erdat,wa_vbak-erzet,wa_vbak-bstdk.
+  clear wa_vbak.
+ENDLOOP.
+
+TOP-OF-PAGE.
+WRITE: /'Header of the program' COLOR 1.

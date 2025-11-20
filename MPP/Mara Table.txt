@@ -1,0 +1,37 @@
+*&---------------------------------------------------------------------*
+*& Report SAPMZMOD1_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT sapmzmod1_u29.
+TABLES: mara.
+DATA: lv_matnum  TYPE matnr,
+      ok_code    TYPE sy-ucomm,
+
+*TYPES: BEGIN OF ty_mara,
+      lv_ersda TYPE ersda,
+      lv_ernam TYPE ernam,
+      lv_mtart TYPE mtart,
+      lv_matkl TYPE matkl.
+*       END OF ty_mara.
+*&---------------------------------------------------------------------*
+*&      Module  USER_COMMAND_0332  INPUT
+*&---------------------------------------------------------------------*
+*       text
+*----------------------------------------------------------------------*
+MODULE user_command_0332 INPUT.
+  CASE ok_code.
+    WHEN 'BTN1'.
+      SELECT SINGLE ersda ernam mtart matkl FROM mara
+        INTO ( lv_ersda, lv_ernam, lv_mtart, lv_matkl )
+        WHERE matnr = lv_matnum.
+
+      mara-ersda = lv_ersda.
+      mara-ernam = lv_ernam.
+      mara-mtart = lv_mtart.
+      mara-matkl = lv_matkl.
+  when 'BTN2'.
+      LEAVE TO TRANSACTION 'SE11' AND SKIP FIRST SCREEN.
+*  	WHEN OTHERS.
+  ENDCASE.
+ENDMODULE.

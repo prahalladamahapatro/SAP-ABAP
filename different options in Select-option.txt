@@ -1,0 +1,46 @@
+*&---------------------------------------------------------------------*
+*& Report ZSELECT_OPTION_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zselect_option_u29.
+
+TABLES vbak.
+
+*declaration of select - options
+*SELECT-OPTIONS: so_vbeln FOR vbak-vbeln,
+*    so_ernam FOR vbak-ernam.
+
+*Declaration of structure
+*TYPES: BEGIN OF ty_struct,
+*         vbeln TYPE vbeln,
+*         ernam TYPE ernam,
+*       END OF ty_struct.
+
+*Creation of Work area and internal table
+*DATA: lt_struct TYPE HASHED TABLE OF ty_struct WITH UNIQUE KEY vbeln,
+*      wa_struct TYPE ty_struct,
+*      lv_num    TYPE int1.
+
+DATA: lt_vbak TYPE TABLE of vbak,
+      wa_vbak TYPE vbak.
+
+SELECTION-SCREEN: BEGIN OF BLOCK b1.
+*  SELECT-OPTIONS so_vbeln FOR vbak-vbeln DEFAULT 1 to 15.
+  SELECT-OPTIONS so_vbeln FOR vbak-vbeln DEFAULT 1 to 15 no INTERVALS.
+*  Even if you have given the default values to the select-options, as you have added the "no-intervals" so the higher limit will be discarded.
+*  SELECT-OPTIONS: so_vbeln FOR vbak-vbeln.
+SELECTION-SCREEN: END OF BLOCK b1.
+
+SELECT vbeln,ernam FROM vbak INTO TABLE @lt_vbak WHERE vbeln IN @so_vbeln.
+
+  LOOP AT lt_vbak INTO wa_vbak.
+  WRITE:/ wa_vbak-vbeln, wa_vbak-ernam, wa_vbak-erdat, wa_vbak-erzet.
+  CLEAR wa_vbak.
+  ENDLOOP.
+
+*SELECT vbeln, ernam from vbak INTO TABLE @lt_struct WHERE ernam in @so_vblen.
+*WRITE:/ vbak-vbeln,vbak-ernam.
+
+*we can't use more than one select-option in select query, otherwise it will give error.
+*SELECT vbeln, ernam from vbak INTO TABLE @lt_struct WHERE vbeln, ernam in @so_vblen.

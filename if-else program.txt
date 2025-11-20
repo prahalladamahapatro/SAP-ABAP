@@ -1,0 +1,19 @@
+*&---------------------------------------------------------------------*
+*& Report ZIFELSEIFPRG_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zifelseifprg_u29.
+PARAMETERS: grade TYPE i DEFAULT 46.
+
+IF grade <= 100 AND grade >= 86.
+  WRITE `YOU HAVE 'O' GRADE`.
+ELSEIF grade <= 85 AND grade >= 71.
+  WRITE `YOU HAVE 'E' GRADE`.
+ELSEIF grade <= 70 AND grade >= 56.
+  WRITE `YOU HAVE 'A' GRADE`.
+ELSEIF grade <= 55 AND grade >= 41.
+  WRITE `YOU HAVE 'B' GRADE`.
+ELSE.
+  WRITE `YOU HAVE FAILED`.
+ENDIF.

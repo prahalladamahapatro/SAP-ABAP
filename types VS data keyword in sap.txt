@@ -1,0 +1,9 @@
+TYPES keyword:
+Using TYPES for own data types or structures.
+Each ABAP program define its own data types using the statement.
+TYPES dtype [TYPE type|LIKE dobj] ...
+
+DATA keyword:
+declare its own variables or instance attributes of classes using the statement
+DATA var [{TYPE type}|{LIKE dobj}] ...
+Using DATA to refer to existing data objects.

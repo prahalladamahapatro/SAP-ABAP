@@ -1,0 +1,48 @@
+*&---------------------------------------------------------------------*
+*& Report ZOOPALV9_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zoopalv9_u29.
+
+DATA: pred TYPE string.
+DATA: pblue TYPE string.
+DATA: pgreen TYPE string.
+DATA: pwhite TYPE string.
+DATA: pblack TYPE string.
+
+**********************************************************************
+*NOTE:
+*Evenif you have created a protected method in global class or local class, then you can't call it directly for the same or child class.
+* with the help of the public method you can only able to call the protected method.
+**********************************************************************
+CLASS demo DEFINITION INHERITING FROM zencap_u29.
+  PUBLIC SECTION.
+    METHODS : prahalad.
+ENDCLASS.
+
+CLASS demo IMPLEMENTATION.
+  METHOD prahalad.
+    display_public( ).
+  ENDMETHOD.
+ENDCLASS.
+
+START-OF-SELECTION.
+
+  DATA: lo_obj TYPE REF TO demo.
+  CREATE OBJECT lo_obj.
+
+*  lo_obj->prahalad( ).
+*    lo_obj->display_public( ).
+*  ZENCAP_U29=>display_public( ).
+
+  DATA: lv_obj TYPE REF TO zencap_u29.
+  CREATE OBJECT lv_obj.
+*  lv_obj->display_public( ).
+  lv_obj->display_color( IMPORTING red = pred
+    blue = pblue
+    green = pgreen
+    white = pwhite
+    black = pblack ) .
+
+  WRITE:/ pblack, pblue, pgreen, pred, pwhite.

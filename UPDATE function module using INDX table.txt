@@ -1,0 +1,45 @@
+FUNCTION ztest_im.
+*"----------------------------------------------------------------------
+*"*"Update Function Module:
+*"
+*"*"Local Interface:
+*"----------------------------------------------------------------------
+*UPDATE FUNCTION MODULE:
+*  - Update function modules are run asynchronously in a different work process
+*      Using "CALL FUNCTION <UPDATE_FUNCTION_MODULE> IN UPDATE TASK" in the report.
+*  - So it is mandatory to use the 'COMMIT WORK AND WAIT', after CALL FUNCTION.
+*  - They don't return anything because they are meant for database changes, not to give feedback.
+*  - So, you're explicitly forbidden to use parameters( IMPORT/EXPORT/CHANGING Parameters).
+*DATA : V1 TYPE STRING VALUE 'ABKJASBDJK'.
+*EXPORT V1 TO MEMORY ID 'AM1'. "It will not work
+
+*DATA: V1 TYPE CHAR70 VALUE 'Write Here'.
+*DATA: wa_log TYPE zupdatelog_u29.
+*
+*wa_log-mandt = sy-mandt.
+*wa_log-uname = sy-uname.
+*wa_log-timestamp = sy-timlo. "Local time of current user
+**sy-uzeit " current time of application server
+*wa_log-message = V1.
+*
+*MODIFY zupdatelog_u29 FROM wa_log.
+*
+*clear wa_log.
+
+
+*******************************************
+**IMPORT EXPORT USING INDX TABLE
+*We can use 'EXPORT TO DATABSE' and 'IMPORT FROM DATABASE' Statement in SAP ABAP to store and retrive data across multiple external session.
+*This method is especially useful for passing large itabs or complex data structure b/w programs or sessions.
+*INDX is a cluster table which is used to store data in compressed, binary cluster format.
+*      EXPORT <DATA> TO DATABASE INDX(<RELID>) ID '<ID>'
+*      Where <RELID> IS 2-character area identifier.
+*      <ID> is an identifier string for your data cluster.
+*      <DATA> is an itab or complex data structure.
+
+  DATA: lt_tab TYPE TABLE OF vbak.
+
+  SELECT * FROM vbak INTO TABLE lt_tab UP TO 20 ROWS.
+
+  EXPORT myvalue = lt_tab TO DATABASE indx(zz) ID 'ZZ_MEMORY'.
+ENDFUNCTION.

@@ -1,0 +1,99 @@
+*&---------------------------------------------------------------------*
+*& Report ZASSIGN7_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zassign7_u29.
+
+TABLES: mara, marc.
+
+PARAMETERS: p_matnum TYPE matnr.
+
+DATA: lt_outtbl TYPE ZLTT_FINAL2,
+      wa_outtbl TYPE ZSTRFINAL2_U29.
+
+CALL FUNCTION 'ZASSIGN7FM_U29'
+  EXPORTING
+    p_matnr        = p_matnum
+ IMPORTING
+   LT_FINAL       = lt_outtbl
+          .
+
+
+
+LOOP AT lt_outtbl INTO wa_outtbl.
+  WRITE: wa_outtbl-matnr, wa_outtbl-ernam, wa_outtbl-laeda, wa_outtbl-pstat, wa_outtbl-werks, wa_outtbl-mmsta, wa_outtbl-ekgrp.
+  SKIP.
+  CLEAR wa_outtbl.
+ENDLOOP.
+
+
+FUNCTION zassign7fm_u29.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(P_MATNR) TYPE  MATNR
+*"  EXPORTING
+*"     REFERENCE(LT_FINAL) TYPE  ZLTT_FINAL2
+*"----------------------------------------------------------------------
+
+  TYPES: BEGIN OF ty_mara,
+           matnr TYPE matnr,
+           ernam TYPE ernam,
+           laeda TYPE laeda,  "date of last change
+           pstat TYPE pstat_d,  "maintenance stat
+         END OF ty_mara.
+
+  TYPES: BEGIN OF ty_marc,
+           matnr TYPE matnr,
+           werks TYPE werks_d,  "plant
+           mmsta TYPE mmsta,  "plant-specific mat stat
+           ekgrp TYPE ekgrp,  "purchase grp
+         END OF ty_marc.
+
+  DATA: lt_mara  TYPE TABLE OF ty_mara,
+        wa_mara  TYPE ty_mara,
+
+        lt_marc  TYPE TABLE OF ty_marc,
+        wa_marc  TYPE ty_marc,
+
+*      lt_final2 TYPE ZLTT_FINAL2,
+        wa_final TYPE zstrfinal2_u29.
+
+
+*  SELECT meins
+*         mtart
+*         matkl
+*         ernam
+*         matnr FROM mara INTO TABLE lt_mara WHERE matnr = p_matnr.
+
+  SELECT matnr
+         ernam
+         laeda
+         pstat FROM mara INTO TABLE lt_mara WHERE matnr = p_matnr.
+
+  IF lt_mara[] IS NOT INITIAL.
+    SELECT matnr
+           werks
+           mmsta
+           ekgrp FROM marc INTO TABLE lt_marc
+      FOR ALL ENTRIES IN lt_mara
+      WHERE matnr = lt_mara-matnr.
+  ENDIF.
+
+  LOOP AT lt_mara INTO wa_mara.
+    wa_final-matnr = wa_mara-matnr.
+    wa_final-ernam = wa_mara-ernam.
+    wa_final-laeda = wa_mara-laeda.
+    wa_final-pstat = wa_mara-pstat.
+
+    LOOP AT lt_marc INTO wa_marc WHERE matnr = wa_mara-matnr.
+      wa_final-werks = wa_marc-werks.
+      wa_final-mmsta = wa_marc-mmsta.
+      wa_final-ekgrp = wa_marc-ekgrp.
+    ENDLOOP.
+
+    APPEND wa_final TO lt_final.
+    CLEAR wa_final.
+  ENDLOOP.
+ENDFUNCTION.

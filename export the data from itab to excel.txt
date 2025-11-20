@@ -1,0 +1,271 @@
+*&---------------------------------------------------------------------*
+*& Report ZITAB2XL_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zitab2xl_u29.
+
+TABLES: sflight.
+
+* decalration of the structure
+TYPES: BEGIN OF ty_flight,
+         carrid     TYPE s_carr_id,
+         connid     TYPE s_conn_id,
+         fldate     TYPE s_date,
+         seatsmax   TYPE s_seatsmax,
+         seatsmax_b TYPE s_smax_b,
+       END OF ty_flight.
+
+* delaration of the internal table and workarea
+DATA: lt_flight TYPE TABLE OF ty_flight,
+      wa_flight TYPE ty_flight.
+
+SELECTION-SCREEN PUSHBUTTON /10(20) pbtn1 USER-COMMAND btn1.
+SELECTION-SCREEN PUSHBUTTON 40(20) pbtn2 USER-COMMAND btn2.
+
+INITIALIZATION.
+  pbtn1 = 'DOWNLOAD'.
+  pbtn2 = 'DISPLAY'.
+
+* for excel functionalities
+  DATA: lo_excel       TYPE REF TO data, "lr_excel_struc
+        lo_tbldesc     TYPE REF TO cl_abap_tabledescr, "lo_source_table
+        lo_tbl_rowdesc TYPE REF TO cl_abap_structdescr, "lo_table_row
+        lv_content     TYPE xstring,
+        lt_bintab      TYPE TABLE OF sdokcntasc, "lt_binary_tab
+        lv_len         TYPE i, "lv_length
+        lv_title       TYPE string VALUE 'Enter your Filename',
+        lv_filenam     TYPE string,
+        lv_path        TYPE string,
+        lv_fullpath    TYPE string.
+
+AT SELECTION-SCREEN.
+  IF sy-ucomm = 'DISPLAY'.
+    PERFORM get_data.
+  ENDIF.
+
+  IF lt_flight[] IS NOT INITIAL.
+    PERFORM create_excel.
+    IF sy-ucomm = 'DOWNLOAD'.
+      PERFORM download_excel.
+    ENDIF.
+  ENDIF.
+
+START-OF-SELECTION.
+
+*&---------------------------------------------------------------------*
+*& Form get_data
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM get_data .
+*   fetching the data from db table to itab
+*  SELECT * FROM sflight INTO @DATA(lt_flight).
+  SELECT * FROM sflight INTO CORRESPONDING FIELDS OF TABLE lt_flight.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form create_excel
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM create_excel .
+*  create data reference
+  GET REFERENCE OF lt_flight INTO lo_excel.
+  DATA(lo_itab_services) = cl_salv_itab_services=>create_for_table_ref( lo_excel ).
+  lo_tbldesc ?= cl_abap_tabledescr=>describe_by_data_ref( lo_excel ).
+  lo_tbl_rowdesc ?= lo_tbldesc->get_table_line_type( ).
+
+*  excel instantiate
+  DATA(lo_tool_xls) = cl_salv_export_tool_ats_xls=>create_for_excel( EXPORTING r_data = lo_excel ).
+
+*  add columns to the sheet
+  DATA(lo_config) = lo_tool_xls->configuration( ).
+
+*  adding the first column heading to the sheet
+  lo_config->add_column(
+  EXPORTING
+    header_text = 'AIRPLANE CODE'
+    field_name = 'CARRID'
+    display_type = if_salv_bs_model_column=>uie_text_view ).
+
+*  adding the 2nd column heading to the sheet
+  lo_config->add_column(
+  EXPORTING
+    header_text = 'Flight Conn No.'
+    field_name = 'CONNID'
+    display_type = if_salv_bs_model_column=>uie_text_view ).
+
+*  adding the 3rd column heading to the sheet
+  lo_config->add_column(
+  EXPORTING
+    header_text = 'Flight Date'
+    field_name = 'FLDATE'
+    display_type = if_salv_bs_model_column=>uie_text_view ).
+
+*  adding the 4th column heading to the sheet
+  lo_config->add_column(
+  EXPORTING
+    header_text = 'Max_cap in EC'
+    field_name = 'SEATSMAX'
+    display_type = if_salv_bs_model_column=>uie_text_view ).
+
+*  adding the 5th column heading to the sheet
+  lo_config->add_column(
+  EXPORTING
+    header_text = 'Max_cap in BC'
+    field_name = 'SEATSMAX_B'
+    display_type = if_salv_bs_model_column=>uie_text_view ).
+
+*  get excel in xstring
+  TRY .
+      lo_tool_xls->read_result( IMPORTING content = lv_content ).
+    CATCH cx_root.
+
+  ENDTRY.
+
+  CALL FUNCTION 'SCMS_XSTRING_TO_BINARY'
+    EXPORTING
+      buffer        = lv_content
+*     APPEND_TO_TABLE       = ' '
+    IMPORTING
+      output_length = lv_len
+    TABLES
+      binary_tab    = lt_bintab.
+
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form download_excel
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM download_excel .
+  CONCATENATE 'FLIGHT DATA' sy-uname sy-uzeit INTO lv_filenam SEPARATED BY '_'.
+
+*  to get the file location to save
+  CALL METHOD cl_gui_frontend_services=>file_save_dialog
+    EXPORTING
+      window_title              = lv_title
+      default_extension         = 'XLSX'
+      default_file_name         = lv_filenam
+*     with_encoding             =
+*     file_filter               =
+*     initial_directory         =
+*     prompt_on_overwrite       = 'X'
+    CHANGING
+      filename                  = lv_filenam
+      path                      = lv_path
+      fullpath                  = lv_fullpath
+*     user_action               =
+*     file_encoding             =
+    EXCEPTIONS
+      cntl_error                = 1
+      error_no_gui              = 2
+      not_supported_by_gui      = 3
+      invalid_default_file_name = 4
+      OTHERS                    = 5.
+  IF sy-subrc <> 0.
+*   Implement suitable error handling here
+  ENDIF.
+
+* To download the excel
+  IF lv_fullpath IS NOT INITIAL.
+
+    CALL FUNCTION 'GUI_DOWNLOAD'
+      EXPORTING
+        bin_filesize            = lv_len
+        filename                = lv_fullpath
+        filetype                = 'BIN'
+*       APPEND                  = ' '
+*       WRITE_FIELD_SEPARATOR   = ' '
+*       HEADER                  = '00'
+*       TRUNC_TRAILING_BLANKS   = ' '
+*       WRITE_LF                = 'X'
+*       COL_SELECT              = ' '
+*       COL_SELECT_MASK         = ' '
+*       DAT_MODE                = ' '
+*       CONFIRM_OVERWRITE       = ' '
+*       NO_AUTH_CHECK           = ' '
+*       CODEPAGE                = ' '
+*       IGNORE_CERR             = ABAP_TRUE
+*       REPLACEMENT             = '#'
+*       WRITE_BOM               = ' '
+*       TRUNC_TRAILING_BLANKS_EOL       = 'X'
+*       WK1_N_FORMAT            = ' '
+*       WK1_N_SIZE              = ' '
+*       WK1_T_FORMAT            = ' '
+*       WK1_T_SIZE              = ' '
+*       WRITE_LF_AFTER_LAST_LINE        = ABAP_TRUE
+*       SHOW_TRANSFER_STATUS    = ABAP_TRUE
+*       VIRUS_SCAN_PROFILE      = '/SCET/GUI_DOWNLOAD'
+*    IMPORTING
+*       FILELENGTH              =
+      TABLES
+        data_tab                = lt_bintab
+*       FIELDNAMES              =
+      EXCEPTIONS
+        file_write_error        = 1
+        no_batch                = 2
+        gui_refuse_filetransfer = 3
+        invalid_type            = 4
+        no_authority            = 5
+        unknown_error           = 6
+        header_not_allowed      = 7
+        separator_not_allowed   = 8
+        filesize_not_allowed    = 9
+        header_too_long         = 10
+        dp_error_create         = 11
+        dp_error_send           = 12
+        dp_error_write          = 13
+        unknown_dp_error        = 14
+        access_denied           = 15
+        dp_out_of_memory        = 16
+        disk_full               = 17
+        dp_timeout              = 18
+        file_not_found          = 19
+        dataprovider_exception  = 20
+        control_flush_error     = 21
+        OTHERS                  = 22.
+  ENDIF.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+
+  ELSE.
+
+    CALL METHOD cl_gui_frontend_services=>execute
+      EXPORTING
+        document               = lv_fullpath
+*       application            =
+*       parameter              =
+*       default_directory      =
+*       maximized              =
+*       minimized              =
+*       synchronous            =
+*       operation              = 'OPEN'
+      EXCEPTIONS
+        cntl_error             = 1
+        error_no_gui           = 2
+        bad_parameter          = 3
+        file_not_found         = 4
+        path_not_found         = 5
+        file_extension_unknown = 6
+        error_execute_failed   = 7
+        synchronous_failed     = 8
+        not_supported_by_gui   = 9
+        OTHERS                 = 10.
+    IF sy-subrc <> 0.
+*      Implement suitable error handling here
+    ENDIF.
+
+  ENDIF.
+ENDFORM.

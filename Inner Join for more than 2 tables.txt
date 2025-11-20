@@ -1,0 +1,74 @@
+*&---------------------------------------------------------------------*
+*& Report ZASSIGN5_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zassign5_u29.
+
+TABLES :mara,marc,mard,makt.
+
+*TYPES: BEGIN OF ty_mara,
+*         meins TYPE mara-meins, "unit of measure
+*         mtart TYPE mara-mtart, " material type
+*         matkl TYPE mara-matkl,  "material grp
+*         ernam TYPE mara-ernam, "created by
+*         matnr TYPE mara-matnr, "material no
+*       END OF ty_mara.
+*
+*TYPES: BEGIN OF ty_marc,
+*         werks TYPE marc-werks, "plant
+*         matnr TYPE marc-matnr,
+*       END OF ty_marc.
+*
+*TYPES: BEGIN OF ty_mard,
+*         lgort TYPE mard-lgort, "storage
+*         matnr TYPE mard-matnr,
+*       END OF ty_mard.
+*
+*TYPES : BEGIN OF ty_makt,
+*          maktx TYPE makt-maktx, "material des
+*          matnr TYPE makt-matnr,
+*        END OF ty_makt.
+
+TYPES: BEGIN OF ty_mmdata,
+         meins TYPE mara-meins,
+         mtart TYPE mara-mtart,
+         matkl TYPE mara-matkl,
+         ernam TYPE mara-ernam,
+         matnr TYPE mara-matnr,
+         werks TYPE marc-werks,
+         lgort TYPE mard-lgort,
+         maktx TYPE makt-maktx,
+
+       END OF ty_mmdata.
+
+DATA: lt_mmdata TYPE TABLE OF ty_mmdata,
+      wa_mmdata TYPE ty_mmdata.
+
+SELECT
+  mara~meins
+  mara~mtart
+  mara~matkl
+  mara~ernam
+  mara~matnr
+  marc~werks
+  mard~lgort
+  makt~maktx FROM mara
+  INNER JOIN makt ON mara~matnr = makt~matnr
+  INNER JOIN marc ON mara~matnr = marc~matnr
+  INNER JOIN mard ON mara~matnr = mard~matnr
+  INTO TABLE lt_mmdata.
+
+LOOP AT lt_mmdata INTO wa_mmdata.
+  WRITE:/ wa_mmdata-meins  ,
+         wa_mmdata-mtart   ,
+         wa_mmdata-matkl   ,
+         wa_mmdata-ernam   ,
+         wa_mmdata-matnr   ,
+         wa_mmdata-werks   ,
+         wa_mmdata-lgort   ,
+         wa_mmdata-maktx   .
+
+  CLEAR lt_mmdata.
+
+ENDLOOP.

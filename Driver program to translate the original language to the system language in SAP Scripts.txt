@@ -1,0 +1,28 @@
+*&---------------------------------------------------------------------*
+*& Report ZDRIVERPRGM_TRANSLATEDSCRIPT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zdriverprgm_translatedscript.
+
+PARAMETERS: p_lang TYPE t002-spras.
+
+DATA: wa_print TYPE itcpo.
+wa_print-tdpreview = 'X'.
+wa_print-tddest = 'LP01'.
+
+CALL FUNCTION 'OPEN_FORM'
+  EXPORTING
+    form     = 'ZMERGE_SCRIPT1'
+    language = p_lang "SY-LANGU
+    dialog = ' '
+    options  = wa_print.
+
+CALL FUNCTION 'WRITE_FORM'
+  EXPORTING
+    element = 'E1'
+*   FUNCTION                       = 'SET'
+*   TYPE    = 'BODY'
+    window  = 'MAIN'.
+
+CALL FUNCTION 'CLOSE_FORM'.
