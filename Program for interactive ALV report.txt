@@ -1,0 +1,139 @@
+*&---------------------------------------------------------------------*
+*& Report ZALVINCTRPT_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zalvinctrpt_u29.
+
+TABLES: mara, marc.
+
+TYPES: BEGIN OF ty_mara,
+         matnr TYPE matnr,
+         ernam TYPE ernam,
+         aenam TYPE aenam, " person who change the data
+         matkl TYPE matkl,
+       END OF ty_mara.
+
+TYPES: BEGIN OF ty_marc,
+         matnr TYPE matnr,
+         werks TYPE werks_d,
+         pstat TYPE pstat_d,
+       END OF ty_marc.
+
+DATA: lt_mara      TYPE TABLE OF ty_mara,
+      wa_mara      TYPE ty_mara,
+
+      lt_marc      TYPE TABLE OF ty_marc,
+      wa_marc      TYPE ty_marc,
+
+      lt_fieldctlg TYPE TABLE OF slis_fieldcat_alv,
+      wa_fieldctlg TYPE slis_fieldcat_alv.
+
+wa_fieldctlg-col_pos = '1'.
+wa_fieldctlg-fieldname = 'MATNR'.
+wa_fieldctlg-tabname = 'lt_mara'.
+wa_fieldctlg-seltext_l = 'Material Number'.
+APPEND wa_fieldctlg TO lt_fieldctlg.
+CLEAR wa_fieldctlg.
+
+
+wa_fieldctlg-col_pos = '2'.
+wa_fieldctlg-fieldname = 'ERNAM'.
+wa_fieldctlg-tabname = 'lt_mara'.
+wa_fieldctlg-seltext_l = 'Person who created'.
+APPEND wa_fieldctlg TO lt_fieldctlg.
+CLEAR wa_fieldctlg.
+
+wa_fieldctlg-col_pos = '3'.
+wa_fieldctlg-fieldname = 'AENAM'.
+wa_fieldctlg-tabname = 'lt_mara'.
+wa_fieldctlg-seltext_l = 'Person who last bchanged'.
+APPEND wa_fieldctlg TO lt_fieldctlg.
+CLEAR wa_fieldctlg.
+
+wa_fieldctlg-col_pos = '4'.
+wa_fieldctlg-fieldname = 'MATKL'.
+wa_fieldctlg-tabname = 'lt_mara'.
+wa_fieldctlg-seltext_l = 'Material Group'.
+APPEND wa_fieldctlg TO lt_fieldctlg.
+CLEAR wa_fieldctlg.
+
+SELECT matnr
+       ernam
+       aenam
+       matkl FROM mara INTO TABLE lt_mara.
+
+LOOP AT lt_mara INTO wa_mara.
+  WRITE:/ wa_mara-matnr, wa_mara-ernam, wa_mara-aenam, wa_mara-matkl.
+  CLEAR wa_mara.
+ENDLOOP.
+
+AT LINE-SELECTION.
+  CASE sy-lsind.
+    WHEN '1'.
+      DATA: lv_matnum TYPE matnr.
+      lv_matnum = sy-lisel.
+
+      CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+        EXPORTING
+          input  = lv_matnum
+        IMPORTING
+          output = lv_matnum.
+
+      SELECT matnr
+             werks
+             pstat FROM marc INTO TABLE lt_marc
+        WHERE matnr = lv_matnum.
+
+      LOOP AT lt_marc INTO wa_marc.
+        WRITE: 'Material Number', 42'Plant'.
+        WRITE:/ wa_marc-matnr, wa_marc-werks.
+        CLEAR wa_marc.
+      ENDLOOP.
+*    WHEN .
+*    WHEN OTHERS.
+  ENDCASE.
+
+
+*CALL FUNCTION 'REUSE_ALV_LIST_DISPLAY'
+*  EXPORTING
+**   I_INTERFACE_CHECK              = ' '
+**   I_BYPASSING_BUFFER             =
+**   I_BUFFER_ACTIVE                = ' '
+**   I_CALLBACK_PROGRAM             = ' '
+**   I_CALLBACK_PF_STATUS_SET       = ' '
+**   I_CALLBACK_USER_COMMAND        = ' '
+**   I_STRUCTURE_NAME               =
+**   IS_LAYOUT   =
+*    it_fieldcat = lt_fieldctlg
+**   IT_EXCLUDING                   =
+**   IT_SPECIAL_GROUPS              =
+**   IT_SORT     =
+**   IT_FILTER   =
+**   IS_SEL_HIDE =
+**   I_DEFAULT   = 'X'
+**   I_SAVE      = ' '
+**   IS_VARIANT  =
+**   IT_EVENTS   =
+**   IT_EVENT_EXIT                  =
+**   IS_PRINT    =
+**   IS_REPREP_ID                   =
+**   I_SCREEN_START_COLUMN          = 0
+**   I_SCREEN_START_LINE            = 0
+**   I_SCREEN_END_COLUMN            = 0
+**   I_SCREEN_END_LINE              = 0
+**   IR_SALV_LIST_ADAPTER           =
+**   IT_EXCEPT_QINFO                =
+**   I_SUPPRESS_EMPTY_DATA          = ABAP_FALSE
+** IMPORTING
+**   E_EXIT_CAUSED_BY_CALLER        =
+**   ES_EXIT_CAUSED_BY_USER         =
+*  TABLES
+*    t_outtab    = lt_mara
+** EXCEPTIONS
+**   PROGRAM_ERROR                  = 1
+**   OTHERS      = 2
+*  .
+*IF sy-subrc <> 0.
+** Implement suitable error handling here
+*ENDIF.

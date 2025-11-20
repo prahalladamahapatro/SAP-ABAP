@@ -1,0 +1,344 @@
+*&---------------------------------------------------------------------*
+*& Report ZALVRPTCUST2_U29
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zalvrptcust2_u29.
+
+TABLES: zordhpm_u29, zordipm_u29.
+
+DATA: lt_ordh      TYPE TABLE OF zty_zordh,
+      wa_ordh      TYPE zty_zordh,
+
+      lt_ordi      TYPE TABLE OF zty_zordi,
+      wa_ordi      TYPE zty_zordi,
+
+      lt_ordi1     TYPE TABLE OF zty_zordi,
+      wa_ordi1     TYPE zty_zordi,
+
+      lt_fieldcat  TYPE slis_t_fieldcat_alv,
+      wa_fieldcat  TYPE slis_fieldcat_alv,
+
+      lt_fieldcat1 TYPE slis_t_fieldcat_alv,
+      wa_fieldcat1 TYPE slis_fieldcat_alv,
+
+      ly_fieldcat  TYPE slis_layout_alv,
+
+      lt_header    TYPE slis_t_listheader,
+      wa_header    TYPE slis_listheader,
+
+      lt_sort      TYPE slis_t_sortinfo_alv,
+      wa_sort      TYPE slis_sortinfo_alv,
+
+      lv_num       TYPE int1.
+
+START-OF-SELECTION.
+  PERFORM get_data.
+  PERFORM get_fieldcat.
+  PERFORM get_layout.
+  PERFORM display_data.
+*&---------------------------------------------------------------------*
+*& Form get_data
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM get_data .
+  SELECT * FROM zordhpm_u29 INTO CORRESPONDING FIELDS OF TABLE lt_ordh.
+
+  SELECT * FROM zordipm_u29 INTO CORRESPONDING FIELDS OF TABLE lt_ordi
+    FOR ALL ENTRIES IN lt_ordh WHERE ord_no = lt_ordh-ord_no.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form get_fieldcat
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM get_fieldcat .
+  wa_fieldcat-col_pos = 1.
+  wa_fieldcat-fieldname = 'ORD_NO'.
+  wa_fieldcat-key = abap_true.
+  wa_fieldcat-tabname = 'lt_ordh'.
+  wa_fieldcat-seltext_l = 'ORDER NUMBER'.
+  wa_fieldcat-emphasize = 'C14'.
+  wa_fieldcat-hotspot = 'X'.
+  APPEND wa_fieldcat TO lt_fieldcat.
+  CLEAR wa_fieldcat.
+
+  wa_fieldcat-col_pos = 2.
+  wa_fieldcat-fieldname = 'ORD_DT'.
+  wa_fieldcat-tabname = 'lt_ordh'.
+  wa_fieldcat-seltext_l = 'ORDER DATE'.
+  APPEND wa_fieldcat TO lt_fieldcat.
+  CLEAR wa_fieldcat.
+
+  wa_fieldcat-col_pos = 3.
+  wa_fieldcat-fieldname = 'CUST_ID'.
+  wa_fieldcat-tabname = 'lt_ordh'.
+  wa_fieldcat-seltext_l = 'CUSTOMER ID'.
+  APPEND wa_fieldcat TO lt_fieldcat.
+  CLEAR wa_fieldcat.
+
+  wa_fieldcat-col_pos = 4.
+  wa_fieldcat-fieldname = 'TOT_AMT'.
+  wa_fieldcat-tabname = 'lt_ordh'.
+  wa_fieldcat-seltext_l = 'TOTAL AMOUNT'.
+  APPEND wa_fieldcat TO lt_fieldcat.
+  CLEAR wa_fieldcat.
+
+*  CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
+*   EXPORTING
+*     I_PROGRAM_NAME               = SY-repid
+*     I_INTERNAL_TABNAME           = lt_ordh
+**     I_STRUCTURE_NAME             = 'ZTY_ZORDH'
+**     I_CLIENT_NEVER_DISPLAY       = 'X'
+**     I_INCLNAME                   =
+**     I_BYPASSING_BUFFER           =
+**     I_BUFFER_ACTIVE              =
+*    CHANGING
+*      ct_fieldcat                  = lt_fieldcat
+*   EXCEPTIONS
+*     INCONSISTENT_INTERFACE       = 1
+*     PROGRAM_ERROR                = 2
+*     OTHERS                       = 3
+*            .
+*  IF sy-subrc <> 0.
+** Implement suitable error handling here
+*  ENDIF.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form get_layout
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM get_layout .
+  ly_fieldcat-zebra = 'X'.
+  ly_fieldcat-no_vline = 'X'.
+*  ly_fieldcat-box_fieldname = 'X'.
+  ly_fieldcat-edit = abap_true.
+ENDFORM.
+
+*&---------------------------------------------------------------------*
+*& Form display_data
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM display_data .
+*  LOOP AT lt_ordh INTO wa_ordh.
+*    WRITE:/ wa_ordh-cust_id, wa_ordh-ord_no, wa_ordh-ord_dt, wa_ordh-tot_amt.
+*    CLEAR wa_ordh.
+*  ENDLOOP.
+  CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+    EXPORTING
+*     I_INTERFACE_CHECK       = ' '
+*     I_BYPASSING_BUFFER      = ' '
+*     I_BUFFER_ACTIVE         = ' '
+      i_callback_program      = sy-repid
+*     I_CALLBACK_PF_STATUS_SET          = 'pf_stat_demo'
+      i_callback_user_command = 'USR_CMD_DEMO'
+*     I_CALLBACK_TOP_OF_PAGE  = ' '
+*     I_CALLBACK_HTML_TOP_OF_PAGE       = ' '
+*     I_CALLBACK_HTML_END_OF_LIST       = ' '
+      i_structure_name        = 'ZTY_ZORDH'
+*     I_BACKGROUND_ID         = ' '
+*     I_GRID_TITLE            =
+*     I_GRID_SETTINGS         =
+      is_layout               = ly_fieldcat
+      it_fieldcat             = lt_fieldcat
+*     IT_EXCLUDING            =
+*     IT_SPECIAL_GROUPS       =
+*     IT_SORT                 =
+*     IT_FILTER               =
+*     IS_SEL_HIDE             =
+*     I_DEFAULT               = 'X'
+*     I_SAVE                  = ' '
+*     IS_VARIANT              =
+*     IT_EVENTS               =
+*     IT_EVENT_EXIT           =
+*     IS_PRINT                =
+*     IS_REPREP_ID            =
+*     I_SCREEN_START_COLUMN   = 0
+*     I_SCREEN_START_LINE     = 0
+*     I_SCREEN_END_COLUMN     = 0
+*     I_SCREEN_END_LINE       = 0
+*     I_HTML_HEIGHT_TOP       = 0
+*     I_HTML_HEIGHT_END       = 0
+*     IT_ALV_GRAPHICS         =
+*     IT_HYPERLINK            =
+*     IT_ADD_FIELDCAT         =
+*     IT_EXCEPT_QINFO         =
+*     IR_SALV_FULLSCREEN_ADAPTER        =
+*     O_PREVIOUS_SRAL_HANDLER =
+*   IMPORTING
+*     E_EXIT_CAUSED_BY_CALLER =
+*     ES_EXIT_CAUSED_BY_USER  =
+    TABLES
+      t_outtab                = lt_ordh
+    EXCEPTIONS
+      program_error           = 1
+      OTHERS                  = 2.
+  IF sy-subrc <> 0.
+    WRITE:/ 'BETTER LUCK NEXT TIME'.
+* Implement suitable error handling here
+  ENDIF.
+
+ENDFORM.
+
+FORM pf_stat_demo USING rt_extab TYPE slis_t_extab.
+  SET PF-STATUS 'CUST_MENU'.
+ENDFORM.
+
+FORM usr_cmd_demo USING r_ucomm LIKE sy-ucomm selfield TYPE slis_selfield.
+  CASE r_ucomm.
+    WHEN '&IC1'.
+      READ TABLE lt_ordi INTO wa_ordi1 INDEX selfield-tabindex.
+      APPEND wa_ordi1 TO lt_ordi1.
+      PERFORM get_fieldcat1.
+      PERFORM display_data1.
+      PERFORM top_demo.
+      CLEAR lt_fieldcat1.
+      CLEAR lt_ordi1.
+*      CLEAR wa_ordi1.
+  ENDCASE.
+ENDFORM.
+
+FORM top_demo.
+  wa_header-typ = 'S'.
+  wa_header-key = 'ORDER NUMBER'.
+  wa_header-info = wa_ordi1-ord_no.
+  APPEND wa_header TO lt_header.
+
+
+  CALL FUNCTION 'REUSE_ALV_COMMENTARY_WRITE'
+    EXPORTING
+      it_list_commentary = lt_header
+*     I_LOGO             =
+*     I_END_OF_LIST_GRID =
+*     I_ALV_FORM         =
+    .
+  CLEAR wa_header.
+  REFRESH lt_header.
+  CLEAR wa_ordi1.
+ENDFORM.
+
+
+*&---------------------------------------------------------------------*
+*& Form get_fieldcat1
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM get_fieldcat1 .
+  wa_fieldcat1-col_pos = 1.
+  wa_fieldcat1-fieldname = 'ORD_NO'.
+  wa_fieldcat1-tabname = 'lt_ordi'.
+  wa_fieldcat1-seltext_l = 'ORDER NUMBER'.
+  APPEND wa_fieldcat1 TO lt_fieldcat1.
+  CLEAR wa_fieldcat1.
+
+  wa_fieldcat1-col_pos = 2.
+  wa_fieldcat1-fieldname = 'ITEM_NO'.
+  wa_fieldcat1-tabname = 'lt_ordi'.
+  wa_fieldcat1-seltext_l = 'ITEM NUMBER'.
+  APPEND wa_fieldcat1 TO lt_fieldcat1.
+  CLEAR wa_fieldcat1.
+
+  wa_fieldcat1-col_pos = 3.
+  wa_fieldcat1-fieldname = 'PRODUCT_ID'.
+  wa_fieldcat1-tabname = 'lt_ordi'.
+  wa_fieldcat1-seltext_l = 'PRODUCT NUMBER'.
+  APPEND wa_fieldcat1 TO lt_fieldcat1.
+  CLEAR wa_fieldcat1.
+
+  wa_fieldcat1-col_pos = 4.
+  wa_fieldcat1-fieldname = 'QUANTITY'.
+  wa_fieldcat1-tabname = 'lt_ordi'.
+  wa_fieldcat1-seltext_l = 'TOTAL QUANTITY'.
+  APPEND wa_fieldcat1 TO lt_fieldcat1.
+  CLEAR wa_fieldcat1.
+
+  wa_fieldcat1-col_pos = 5.
+  wa_fieldcat1-fieldname = 'TOT_AMT'.
+  wa_fieldcat1-tabname = 'lt_ordi'.
+  wa_fieldcat1-seltext_l = 'TOTAL AMOUNT'.
+  APPEND wa_fieldcat1 TO lt_fieldcat1.
+  CLEAR wa_fieldcat1.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form display_data1
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM display_data1 .
+  CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
+    EXPORTING
+*     I_INTERFACE_CHECK        = ' '
+*     I_BYPASSING_BUFFER       = ' '
+*     I_BUFFER_ACTIVE          = ' '
+      i_callback_program       = sy-repid
+      i_callback_pf_status_set = 'PF_STAT_DEMO'
+      i_callback_user_command  = 'USR_CMD_DEMO'
+      i_callback_top_of_page   = 'TOP_DEMO'
+*     I_CALLBACK_HTML_TOP_OF_PAGE       = ' '
+*     I_CALLBACK_HTML_END_OF_LIST       = ' '
+*     I_STRUCTURE_NAME         =
+*     I_BACKGROUND_ID          = ' '
+*     I_GRID_TITLE             =
+*     I_GRID_SETTINGS          =
+      is_layout                = ly_fieldcat
+      it_fieldcat              = lt_fieldcat1
+*     IT_EXCLUDING             =
+*     IT_SPECIAL_GROUPS        =
+      it_sort                  = lt_sort
+*     IT_FILTER                =
+*     IS_SEL_HIDE              =
+*     I_DEFAULT                = 'X'
+*     I_SAVE                   = ' '
+*     IS_VARIANT               =
+*     IT_EVENTS                =
+*     IT_EVENT_EXIT            =
+*     IS_PRINT                 =
+*     IS_REPREP_ID             =
+*     I_SCREEN_START_COLUMN    = 0
+*     I_SCREEN_START_LINE      = 0
+*     I_SCREEN_END_COLUMN      = 0
+*     I_SCREEN_END_LINE        = 0
+*     I_HTML_HEIGHT_TOP        = 0
+*     I_HTML_HEIGHT_END        = 0
+*     IT_ALV_GRAPHICS          =
+*     IT_HYPERLINK             =
+*     IT_ADD_FIELDCAT          =
+*     IT_EXCEPT_QINFO          =
+*     IR_SALV_FULLSCREEN_ADAPTER        =
+*     O_PREVIOUS_SRAL_HANDLER  =
+* IMPORTING
+*     E_EXIT_CAUSED_BY_CALLER  =
+*     ES_EXIT_CAUSED_BY_USER   =
+    TABLES
+      t_outtab                 = lt_ordi1
+    EXCEPTIONS
+      program_error            = 1
+      OTHERS                   = 2.
+  IF sy-subrc <> 0.
+* Implement suitable error handling here
+  ENDIF.
+
+ENDFORM.
